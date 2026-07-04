@@ -1,0 +1,42 @@
+# IDE and editor files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Build and dependency outputs
+build/
+dist/
+out/
+target/
+node_modules/
+
+# IBKR Flex outputs and local portfolio exports
+*.flex.csv
+*.flex.xml
+ibkr-portfolio-*.csv
+ibkr-portfolio-*.xml
+portfolio-*.csv
+portfolio-*.xml
