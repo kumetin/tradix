@@ -58,3 +58,67 @@ available. Regenerate them with:
 ```sh
 scripts/stock-data-enrichment/precompute_daily_stock_features.py
 ```
+
+If required historical OHLCV rows are missing from the local daily price
+dataset, use the fetchers under `scripts/market-data-fetchers/` before giving up
+or asking the user to supply data. Read
+`scripts/market-data-fetchers/README.md` first. For stock daily bars, use:
+
+```sh
+python3 scripts/market-data-fetchers/fetch_stock_prices.py TICKER START_DATE END_DATE 1d
+```
+
+The fetcher writes CSV to stdout and includes `open`, `high`, `low`, `close`,
+`adj_close`, and `volume`.
+
+Fetched daily stock data is not considered available for analysis until it has
+been persisted into the repository dataset:
+
+```text
+data/stock/prices/daily/<year>/<ticker>.csv
+```
+
+Split fetched rows by calendar year, create missing yearly ticker files as
+needed, and preserve the daily price dataset columns described in
+`data/stock/prices/daily/.notes`. Do not rely on CSVs fetched only to `/tmp`,
+stdout, or another scratch location for analysis. After adding or updating local
+daily price data, regenerate the daily feature files before relying on moving
+averages, returns, rolling highs, drawdowns, or volume-derived features.
+
+## Alerts
+
+Stock alerts and re-entry watchlists live under `alerts/`.
+
+When the user asks to check alerts, review alerts, update alerts, or evaluate
+whether watched stocks are worth re-entering:
+
+1. Read `alerts/README.md` first.
+2. Inspect the relevant alert files under `alerts/`. If the user does not name
+   a specific file, inspect all non-README files in that directory.
+3. Treat each alert entry as a sold-stock re-entry watch item. Evaluate it using
+   the alert context plus available market data, including:
+   - sell price and sell time
+   - buy price and buy time
+   - relevant support and resistance levels
+   - current price versus short-term and long-term moving averages
+   - volume trend from the sell date to the current date
+   - short-term and long-term volume trends
+   - short-term and long-term moving-average trends
+4. For any analysis that uses price, moving-average, volume, return, or
+   indicator data, also follow the Daily Stock Price Analysis instructions
+   above, including reading the `.notes` files before using the daily stock
+   dataset.
+5. If historical data needed for an alert is absent locally, first populate the
+   local daily price dataset using the market data fetcher workflow described
+   above. This is required before evaluating the alert. For example, if `IBIT`
+   is missing locally, fetch `IBIT`, write the fetched rows into
+   `data/stock/prices/daily/<year>/IBIT.csv`, regenerate daily features, and
+   then analyze `IBIT` from local `data/stock/features/daily/<year>/IBIT.csv`
+   files. Do not analyze the alert directly from a temporary fetched CSV.
+6. Give a practical opinion on whether the stock looks worth re-entering, what
+   evidence supports or weakens that view, and the approximate watch or holding
+   horizon implied by the setup.
+
+Do not present alert analysis as certainty or personalized financial advice.
+Make data gaps explicit, especially when an alert lacks buy/sell prices, dates,
+support/resistance levels, or current market data.
