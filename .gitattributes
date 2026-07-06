@@ -1,2 +1,2 @@
-data/stock/** filter=lfs diff=lfs merge=lfs -text
-data/stock/** !text !filter !merge !diff
+# Stock CSV data is kept in regular Git, not Git LFS.
+data/stock/** -text
