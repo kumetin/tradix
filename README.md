@@ -11,12 +11,14 @@ engineering, and strategy testing.
 - `scripts/market-data-fetchers/` - helpers for downloading market data
 - `scripts/stock-data-enrichment/` - scripts for generating derived datasets
 - `strategies/` - strategy notes and backtest specifications
+- `watchlists/` - ticker universes to review for trade setups
+- `rankers/` - reusable setup ranking rubrics for watchlist reviews
 
 ## Current Strategy Note
 
 The active strategy being tested is documented here:
 
-- [`strategies/momentum-rotaion.md`](strategies/momentum-rotaion.md)
+- [`strategies/momentum-rotation.md`](strategies/momentum-rotation.md)
 
 It describes a monthly momentum rotation model with:
 
@@ -50,3 +52,14 @@ Local configuration is expected in:
 - `~/.ibkr/flex-tokens.csv`
 
 See `AGENTS.md` for the workflow.
+
+## Watchlist Reviews
+
+Watchlists define ticker universes, while prompt files define the setup ranking
+rubrics used to evaluate them. For example:
+
+- [`watchlists/ai-infrastructure.md`](watchlists/ai-infrastructure.md)
+- [`rankers/lower-risk-swing-entry.md`](rankers/lower-risk-swing-entry.md)
+
+See `watchlists/README.md`, `rankers/README.md`, and `AGENTS.md` for the
+review workflow.

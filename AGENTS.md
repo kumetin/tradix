@@ -122,3 +122,37 @@ whether watched stocks are worth re-entering:
 Do not present alert analysis as certainty or personalized financial advice.
 Make data gaps explicit, especially when an alert lacks buy/sell prices, dates,
 support/resistance levels, or current market data.
+
+## Watchlist Setup Reviews
+
+Stock watchlists live under `watchlists/`. Setup ranking rubrics live under
+`rankers/`.
+
+When the user asks to review a watchlist, rank a watchlist, or evaluate a
+watchlist for stock setups:
+
+1. Read `watchlists/README.md` first.
+2. Inspect the requested watchlist file. If no file is named and more than one
+   watchlist exists, ask which watchlist to review.
+3. Read `rankers/README.md` and the selected setup ranker.
+4. Use `rankers/lower-risk-swing-entry.md` by default. Use
+   `rankers/quantitative-swing-score.md` when the user asks for a quantitative
+   score, scorecard, conviction ranking, or setup score. Use
+   `rankers/qualitative-pullback-buy-zone.md` only for a lighter qualitative
+   pullback or buy-zone review.
+5. Parse tickers from the watchlist while preserving category/group headings as
+   context.
+6. For any analysis that uses price, moving-average, volume, volatility,
+   return, RSI, support/resistance, drawdown, or indicator data, also follow
+   the Daily Stock Price Analysis instructions above, including reading the
+   `.notes` files before using the daily stock dataset.
+7. If historical OHLCV data required for the watchlist review is absent
+   locally, first populate the local daily price dataset using the market data
+   fetcher workflow described above, then regenerate daily features before
+   ranking the setup.
+8. For analyst targets, analyst counts, rating changes, target revisions,
+   estimate revisions, fundamentals, earnings quality, or institutional
+   sponsorship signals, use reliable current sources when available. If data is
+   unavailable, mark it `N/A`; do not fabricate it.
+9. Return a ranked setup table, make data gaps explicit, and do not present the
+   result as certainty or personalized financial advice.
