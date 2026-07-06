@@ -31,3 +31,30 @@ Workflow for portfolio analysis:
 
 Do not print, expose, or ask the user to paste Flex tokens. Use the token only
 through the local helper script and local configuration files.
+
+## Daily Stock Price Analysis
+
+Daily stock price CSVs are stored under `data/stock/prices/daily/<year>/`.
+Precomputed daily feature CSVs are stored under
+`data/stock/features/daily/<year>/`.
+
+Before analyzing this dataset or calculating indicators such as moving
+averages, RSI, volatility, or returns, read:
+
+```sh
+data/stock/prices/daily/.notes
+data/stock/features/daily/.notes
+```
+
+Use those notes to account for shorter ticker histories, missing trading-day
+rows, class ticker filename conventions, and known blank OHLCV rows. Do not
+assume every ticker has a complete 1254-row history, and do not forward-fill
+missing OHLCV data unless the user explicitly requests it.
+
+For analyses that need adjusted open/high/low, moving averages, trailing
+returns, rolling highs, or drawdowns, prefer the precomputed feature files when
+available. Regenerate them with:
+
+```sh
+scripts/stock-data-enrichment/precompute_daily_stock_features.py
+```
