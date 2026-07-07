@@ -140,6 +140,14 @@ Use static validation checks for mostly declarative profiles such as
 `universes/`, `funding/`, schedules, evaluations, and backtest link
 consistency.
 
+Repository-specific test helper:
+
+- A static validation script exists at `tests/validation/validate_static_profiles.py`.
+  - Run it with the repository Python interpreter: `python3 tests/validation/validate_static_profiles.py`.
+  - Use this before running higher-level experiments to catch malformed profile files.
+  - The codebase contains compiled Python artifacts (`__pycache__/` with cpython-37.pyc),
+    so prefer Python 3.7+ when running the included scripts.
+
 Do not create behavioral tests for every static profile by default. Add tests
 where the component has logic that can change results silently, such as
 look-ahead-prone selection rules, sell/rebalance behavior, or cash settlement
@@ -171,9 +179,24 @@ When the user asks to check alerts, review alerts, update alerts, or evaluate
 whether watched stocks are worth re-entering:
 
 1. Read `alerts/README.md` first.
-2. Inspect the relevant alert files under `alerts/`. If the user does not name
+2. For `check alerts`, inspect every non-README file under `alerts/`, even if
+   the user mentions or links a specific alert file. For other alert requests,
+   inspect the relevant alert files under `alerts/`; if the user does not name
    a specific file, inspect all non-README files in that directory.
-3. Treat each alert entry as a sold-stock re-entry watch item. Evaluate it using
+3. When the user asks to `check alerts`, always evaluate trigger conditions
+   against live real-time market data. Use the local daily price and feature
+   datasets only as supporting context for moving averages, volume trends,
+   historical returns, and setup quality; do not use stale local daily closes as
+   the trigger source when live data is available.
+4. In `check alerts` responses, group triggered and non-triggered alert rows by
+   source alert filename as a subtitle instead of repeating the filename on each
+   row.
+5. For re-entry watch files, treat the file's `Re-Entry Criteria` section as
+   the trigger framework. Classify a watched stock as triggered only when the
+   criteria are materially satisfied; otherwise summarize which criteria are
+   partial or missing. Do not say there is no trigger merely because there is no
+   single explicit price threshold.
+6. Treat each alert entry as a sold-stock re-entry watch item. Evaluate it using
    the alert context plus available market data, including:
    - sell price and sell time
    - buy price and buy time
@@ -182,18 +205,18 @@ whether watched stocks are worth re-entering:
    - volume trend from the sell date to the current date
    - short-term and long-term volume trends
    - short-term and long-term moving-average trends
-4. For any analysis that uses price, moving-average, volume, return, or
+7. For any analysis that uses price, moving-average, volume, return, or
    indicator data, also follow the Daily Stock Price Analysis instructions
    above, including reading the `.notes` files before using the daily stock
    dataset.
-5. If historical data needed for an alert is absent locally, first populate the
+8. If historical data needed for an alert is absent locally, first populate the
    local daily price dataset using the market data fetcher workflow described
    above. This is required before evaluating the alert. For example, if `IBIT`
    is missing locally, fetch `IBIT`, write the fetched rows into
    `data/stock/prices/daily/<year>/IBIT.csv`, regenerate daily features, and
    then analyze `IBIT` from local `data/stock/features/daily/<year>/IBIT.csv`
    files. Do not analyze the alert directly from a temporary fetched CSV.
-6. Give a practical opinion on whether the stock looks worth re-entering, what
+9. Give a practical opinion on whether the stock looks worth re-entering, what
    evidence supports or weakens that view, and the approximate watch or holding
    horizon implied by the setup.
 
