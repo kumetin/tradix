@@ -2,27 +2,16 @@
 
 ## Strategy Mechanics
 
-This strategy allocates only new cash. Existing holdings are never sold.
+At each scheduled ranking date, using only data available before that date, run
+the configured selection model against the configured universe.
 
-At the start of each month, using data available before that month starts, rank the configured universe.
+The selection model returns one target ticker. This strategy then waits for the
+configured entry rule before producing an executable order for the portfolio
+policy.
 
-A ticker is eligible if:
-
-```text
-(price > long_sma OR medium_sma > long_sma)
-AND
-drawdown from rolling high > max_drawdown
-```
-
-Where:
-
-```text
-drawdown = current adjusted close / highest adjusted close in rolling_high_window trading days - 1
-```
-
-Among eligible tickers, pick the ticker with the highest trailing return over the configured ranking window.
-
-If no ticker is eligible, use the configured fallback ticker.
+The current backtests use the
+[SMA Drawdown Trailing Return](../selection-models/sma-drawdown-trailing-return.md)
+selection model.
 
 ## Entry Rule
 
@@ -38,43 +27,55 @@ When the final down close happens, the setup is known after market close, so the
 
 If no setup happens during that month, buy at month-end adjusted open. That is the fallback entry.
 
-## Portfolio Behavior
+## Portfolio Policy Compatibility
 
-The strategy rotates only for new money. It does not sell old holdings.
+The strategy produces a selected ticker for each scheduled allocation date. The
+portfolio policy decides how that selection affects holdings.
 
-For example, if January buys `SOXL`, February buys `XLE`, and March buys `SMCI`, all three positions remain in the portfolio. New monthly cash just goes into the newly selected ticker.
+Different backtests may run this strategy with different portfolio policies. A
+new-money-only policy accumulates every prior selection, while a rotation policy
+sells the current holding when a different ticker is selected and the new buy
+order is executed.
 
-## Parameters
+## Strategy Parameters
 
-Each parameter set is a separate test case.
+These parameters define the reusable strategy entry logic.
 
 | Parameter | Description |
 | --- | --- |
-| `universe` | Tickers available for monthly ranking and selection. |
-| `start_date` | First date included in the backtest period. |
-| `end_date` | Last date included in the backtest period. |
-| `rebalance_frequency` | How often new cash is allocated and the universe is ranked. |
-| `initial_lump_sum` | Cash invested in the first trade month before regular monthly contributions. |
-| `monthly_contribution` | Cash added and invested each month. |
-| `fractional_shares` | Whether fractional share purchases are allowed. |
-| `fees` | Trading fees used by the simulation. |
-| `taxes` | Tax assumptions used by the simulation. |
-| `slippage` | Slippage assumption used by the simulation. |
-| `allow_selling` | Whether existing holdings can be sold. |
-| `medium_sma_window` | Medium-term SMA window used in the eligibility rule. |
-| `long_sma_window` | Long-term SMA window used in the eligibility rule. |
-| `rolling_high_window` | Window used to compute drawdown from recent highs. |
-| `max_drawdown` | Minimum allowed drawdown value. A ticker must be above this threshold. |
-| `ranking_return_window` | Trailing return window used to rank eligible tickers. |
-| `fallback_ticker` | Ticker selected when no ticker passes eligibility. |
 | `entry_down_days` | Number of consecutive down closes required before entry. |
 | `entry_fallback` | Entry behavior if the down-close setup does not happen during the month. |
 
-## Test Cases
+## External Inputs and Platform Layers
 
-Test cases live under `data/stock/backtests/`.
+These settings are required to run the strategy, but they are owned by other
+parts of the platform.
 
-- [TC-001: High-Beta Universe With SOXL](../data/stock/backtests/momentum-rotation-tc-001-high-beta-with-soxl/README.md)
+| Setting | Owner | Description |
+| --- | --- | --- |
+| `universe` | `universes/` | Tickers available for monthly ranking and selection. |
+| `fallback_ticker` | `universes/` | Ticker selected when no ticker passes eligibility. |
+| Ticker selection logic | `selection-models/` | Eligibility filters, ranking rules, and fallback behavior used to choose the target ticker. |
+| `rebalance_frequency` | `schedules/` | How often rebalance dates are generated for ranking and new-cash allocation. |
+| `initial_lump_sum` | `funding/` | Cash available in the first trade month before regular monthly contributions. |
+| `monthly_contribution` | `funding/` | Cash added on each contribution date. |
+| `allow_selling` | `portfolio-policies/` | Whether existing holdings can be sold. |
+| `fractional_shares` | `execution-models/` | Whether fractional share purchases are allowed. |
+| `fees` | `execution-models/` | Trading fees used by the simulation. |
+| `taxes` | `execution-models/` | Tax assumptions used by the simulation. |
+| `slippage` | `execution-models/` | Slippage assumption used by the simulation. |
+| `start_date` / `end_date` | `evaluations/` | Historical data window used for a run or split. |
+| Train/validation/test splits | `evaluations/` | Full-period, holdout, rolling, or walk-forward validation plan. |
+
+## Backtests
+
+Configured backtest instances live under `backtests/momentum-rotation/`.
+Generated backtest outputs should live under `data/stock/backtests/`.
+Evaluation windows and data splits live under `evaluations/`.
+
+- [TC-001: High-Beta Universe With SOXL](../backtests/momentum-rotation/tc-001-high-beta-with-soxl.md)
+- [TC-002: Random Universe](../backtests/momentum-rotation/tc-002-random-universe.md)
+- [TC-003: Random Universe Multi-Position Initial Only](../backtests/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md)
 
 ## Data Used
 

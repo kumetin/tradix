@@ -85,6 +85,84 @@ stdout, or another scratch location for analysis. After adding or updating local
 daily price data, regenerate the daily feature files before relying on moving
 averages, returns, rolling highs, drawdowns, or volume-derived features.
 
+## Strategy, Backtest, and Evaluation Layout
+
+Reusable strategy definitions live under `strategies/`. A strategy file should
+describe trading rules, portfolio behavior, data requirements, and strategy
+parameters. Do not treat data windows such as `start_date` and `end_date` as
+strategy parameters.
+
+Configured strategy instances live under `backtests/`. A backtest file should
+select a strategy, reference a concrete universe profile, set strategy
+parameters, and explain the edge or hypothesis being tested. Keep schedule,
+fallback selection, funding, portfolio-policy, execution, accounting, and
+evaluation settings in separate sections instead of labeling all of them as
+strategy parameters.
+
+Backtests should compose components in this conceptual order:
+
+```text
+strategy
+-> schedule
+-> universe
+-> selection model
+-> entry rule
+-> portfolio policy
+-> execution model
+-> funding profile
+-> evaluation window
+```
+
+Reusable generic inputs should live in their own component directories:
+`universes/`, `selection-models/`, `schedules/`, `funding/`,
+`portfolio-policies/`, `execution-models/`, and `evaluations/`. When a backtest
+uses one of those generic profiles, reference the profile file instead of
+duplicating its values inside the backtest.
+
+Selection models should own ticker eligibility, ranking, target count, target
+weights, and fallback behavior. Portfolio policies should own how current
+holdings transition toward the selection intent, including whether to sell,
+accumulate, rotate, or rebalance. Execution models should own fills, settlement,
+fees, slippage, fractional shares, and whether unsettled proceeds can be reused.
+Funding profiles should own capital contributions only.
+
+Evaluation windows and train/validation/test split definitions live under
+`evaluations/`. Use this layer for full-period tests, holdout periods,
+walk-forward schedules, rolling windows, and other validation plans.
+
+Generated backtest or evaluation outputs should live under
+`data/stock/backtests/`, not under `strategies/`, `backtests/`, or
+`evaluations/`.
+
+Component test specifications live under `tests/`. Prefer behavioral component
+tests for `selection-models/`, `portfolio-policies/`, and `execution-models/`.
+Use static validation checks for mostly declarative profiles such as
+`universes/`, `funding/`, schedules, evaluations, and backtest link
+consistency.
+
+Do not create behavioral tests for every static profile by default. Add tests
+where the component has logic that can change results silently, such as
+look-ahead-prone selection rules, sell/rebalance behavior, or cash settlement
+timing.
+
+Research guardrails:
+
+- Enforce point-in-time access. Strategies and selection models must not receive
+  full future history when evaluating a past date.
+- Distinguish warm-up data from evaluation data. Warm-up rows may initialize
+  indicators but must not be included in reported performance metrics.
+- Treat current-universe backtests as research tests with current-universe bias
+  unless point-in-time constituents are available.
+- Preserve locked holdout periods. If a holdout result changes a rule,
+  parameter, or component choice, that period is no longer a clean test.
+- Record meaningful backtest runs under `experiments/` once an experiment
+  registry exists. Do not only preserve winning configurations.
+- Benchmark strategy results against `SPY` and, when possible, an equal-weight
+  version of the evaluated universe.
+- For strategies sourced externally, record provenance under
+  `external-strategies/`, freeze the exact specification before testing, and use
+  publication date or author data cutoff to define true out-of-sample periods.
+
 ## Alerts
 
 Stock alerts and re-entry watchlists live under `alerts/`.
