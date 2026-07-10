@@ -13,6 +13,8 @@ engineering, and strategy testing.
 - `strategies/` - reusable strategy notes and rules
 - `backtests/` - configured strategy instances that wire strategy parameters
   to reusable profiles
+- `component-benchmarks/` - isolated benchmark specs for one reusable
+  component profile under a fixed harness
 - `selection-models/` - reusable ticker selection rules
 - `evaluations/` - data windows and train/validation/test split definitions
 - `universes/` - reusable ticker universes and fallback selections
@@ -44,6 +46,22 @@ strategy
 
 Keep generated output data under `data/stock/backtests/`. Keep reusable
 definitions under their component directories.
+
+Terminology:
+
+- A `component type` is the role in the platform pipeline, such as selection
+  model, portfolio policy, execution model, universe, schedule, funding
+  profile, or evaluation window.
+- A `component profile` is one concrete reusable implementation of a component
+  type, such as `selection-models/sma-drawdown-trailing-return.md`.
+- A `strategy stage` is a component type viewed in the ordered strategy flow.
+  Use this when discussing sequencing, not when naming reusable files.
+- A `component benchmark` evaluates one component profile or parameter family
+  under a fixed harness across one or more evaluation windows.
+
+Use `backtests/` for complete configured strategy instances. Use
+`component-benchmarks/` when the question is whether one component profile is
+useful, robust, or worth composing into future strategies.
 
 ## Research Guardrails
 

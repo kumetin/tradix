@@ -51,3 +51,13 @@ python3 tests/validation/validate_static_profiles.py
 | Compatible selection/policy | Single-position policies receive one target; multi-position policies receive weighted targets. |
 | Compatible execution/policy | Policies that depend on settled cash use an execution model that defines settlement behavior. |
 | Benchmarks declared | Results should be compared to `SPY` and, when possible, an equal-weight universe benchmark. |
+
+## Component Benchmarks
+
+| Check | Expected |
+| --- | --- |
+| Referenced files exist | Component under test, fixed harness profiles, evaluation profiles, and baseline links resolve. |
+| Component under test declared | The spec names one component type and links one primary component profile. |
+| Fixed harness declared | The surrounding strategy, schedule, universe, portfolio policy, execution model, and funding profile are explicit. |
+| Evaluation and metrics declared | Evaluation matrix and metrics sections are present. |
+| Output location declared | Generated outputs are written under `data/stock/component-benchmarks/`. |

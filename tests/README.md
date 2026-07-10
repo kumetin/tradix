@@ -16,6 +16,7 @@ validation checks rather than full behavioral tests.
 | Test Type | Purpose |
 | --- | --- |
 | Component behavior | Verify that a component satisfies its contract in isolation. |
+| Component benchmark | Compare one component profile or parameter family under a fixed harness. |
 | Integration backtest | Verify that a configured backtest works end to end. |
 | Static validation | Verify that profile files are internally consistent. |
 
@@ -24,6 +25,10 @@ validation checks rather than full behavioral tests.
 Component tests are not ranked primarily by profit. They are ranked by whether
 the component fulfills its contract without introducing unwanted side effects
 such as excess turnover, cash drag, settlement leakage, or look-ahead bias.
+
+Component benchmarks may compare performance, but only after the component's
+fixed harness, baselines, evaluation windows, and interpretation rules are
+declared under `component-benchmarks/`.
 
 ## Current Test Specs
 

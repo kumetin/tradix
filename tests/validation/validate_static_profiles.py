@@ -54,6 +54,7 @@ def main() -> int:
     validate_schedules(report)
     validate_evaluations(report)
     validate_backtests(report)
+    validate_component_benchmarks(report)
     report.print()
     return 1 if report.errors else 0
 
@@ -254,6 +255,76 @@ def validate_backtests(report: Report) -> None:
             report.warn(f"{label}: no benchmark declaration in backtest spec")
 
 
+def validate_component_benchmarks(report: Report) -> None:
+    base = ROOT / "component-benchmarks"
+    if not base.exists():
+        report.warn("component-benchmarks: directory does not exist")
+        return
+
+    for path in sorted(base.glob("*/*.md")):
+        text = read(path)
+        label = rel(path)
+        links = markdown_links(text)
+        missing_links = []
+        linked_files = []
+        for _, href in links:
+            if href.startswith("http"):
+                continue
+            target = (path.parent / href).resolve()
+            linked_files.append(target)
+            if not target.exists():
+                missing_links.append(href)
+        if missing_links:
+            report.error(f"{label}: missing linked files: {', '.join(missing_links)}")
+        else:
+            report.pass_(f"{label}: linked profile files resolve")
+
+        component_type = extract_inline_code_after_heading(text, "Component Under Test")
+        if component_type:
+            report.pass_(f"{label}: component type declared as {component_type}")
+        else:
+            report.error(f"{label}: component type not declared")
+
+        component_dir = component_type_to_dir(component_type or "")
+        primary_component = linked_path_containing(linked_files, component_dir) if component_dir else None
+        if primary_component:
+            report.pass_(f"{label}: primary component profile linked")
+        else:
+            report.error(f"{label}: primary component profile link missing")
+
+        required_harness = [
+            "strategies",
+            "schedules",
+            "universes",
+            "portfolio-policies",
+            "execution-models",
+            "funding",
+        ]
+        missing_harness = [
+            part for part in required_harness if not linked_path_containing(linked_files, part)
+        ]
+        if missing_harness:
+            report.error(f"{label}: fixed harness links missing: {', '.join(missing_harness)}")
+        else:
+            report.pass_(f"{label}: fixed harness links resolve")
+
+        if linked_path_containing(linked_files, "evaluations"):
+            report.pass_(f"{label}: evaluation profile linked")
+        else:
+            report.warn(f"{label}: no evaluation profile linked")
+
+        if extract_section(text, "Metrics"):
+            report.pass_(f"{label}: metrics section present")
+        else:
+            report.error(f"{label}: metrics section missing")
+
+        output_section = extract_section(text, "Output Location")
+        if "data/stock/component-benchmarks/" in output_section:
+            report.pass_(f"{label}: output location declared")
+        else:
+            report.error(f"{label}: output location missing or outside data/stock/component-benchmarks/")
+
+
 def markdown_links(text: str) -> list[tuple[str, str]]:
     return re.findall(r"\[([^\]]+)\]\(([^)]+)\)", text)
 
@@ -263,6 +334,18 @@ def linked_path_containing(paths: list[Path], part: str) -> Path | None:
         if part in path.parts:
             return path
     return None
+
+
+def component_type_to_dir(component_type: str) -> str | None:
+    return {
+        "selection-model": "selection-models",
+        "portfolio-policy": "portfolio-policies",
+        "execution-model": "execution-models",
+        "universe": "universes",
+        "schedule": "schedules",
+        "funding-profile": "funding",
+        "evaluation-window": "evaluations",
+    }.get(component_type)
 
 
 def validate_selection_policy_compat(
