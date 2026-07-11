@@ -57,8 +57,8 @@ parts of the platform.
 | `fallback_ticker` | `universes/` | Ticker selected when no ticker passes eligibility. |
 | Ticker selection logic | `selection-models/` | Eligibility filters, ranking rules, and fallback behavior used to choose the target ticker. |
 | `rebalance_frequency` | `schedules/` | How often rebalance dates are generated for ranking and new-cash allocation. |
-| `initial_lump_sum` | `funding/` | Cash available in the first trade month before regular monthly contributions. |
-| `monthly_contribution` | `funding/` | Cash added on each contribution date. |
+| `initial_lump_sum` | `funding-profiles/` | Cash available in the first trade month before regular monthly contributions. |
+| `monthly_contribution` | `funding-profiles/` | Cash added on each contribution date. |
 | `allow_selling` | `portfolio-policies/` | Whether existing holdings can be sold. |
 | `fractional_shares` | `execution-models/` | Whether fractional share purchases are allowed. |
 | `fees` | `execution-models/` | Trading fees used by the simulation. |
@@ -70,7 +70,7 @@ parts of the platform.
 ## Backtests
 
 Configured backtest instances live under `backtests/momentum-rotation/`.
-Generated backtest outputs should live under `data/stock/backtests/`.
+Generated backtest artifacts should live under `artifacts/stock/backtests/`.
 Evaluation windows and data splits live under `evaluations/`.
 
 - [TC-001: High-Beta Universe With SOXL](../backtests/momentum-rotation/tc-001-high-beta-with-soxl.md)

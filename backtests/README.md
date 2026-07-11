@@ -5,10 +5,10 @@ strategy, sets strategy-specific parameters, references reusable platform
 profiles, and describes the setup being tested.
 
 Reusable strategy definitions live under `strategies/`. Generic platform
-profiles live under directories such as `universes/`, `schedules/`, `funding/`,
+profiles live under directories such as `universes/`, `schedules/`, `funding-profiles/`,
 `selection-models/`, `portfolio-policies/`, `execution-models/`, and
-`evaluations/`. Generated backtest outputs should live under
-`data/stock/backtests/`.
+`evaluations/`. Generated backtest artifacts should live under
+`artifacts/stock/backtests/`.
 
 ## Momentum Rotation
 

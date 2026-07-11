@@ -48,7 +48,7 @@ the curated high-beta universe, this case should expose that dependency.
 
 ## Funding
 
-[Initial 5000 Monthly 100](../../funding/initial-5000-monthly-100.md)
+[Initial 5000 Monthly 100](../../funding-profiles/initial-5000-monthly-100.md)
 
 ## Portfolio Policy
 

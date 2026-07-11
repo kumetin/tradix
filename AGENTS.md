@@ -114,7 +114,7 @@ strategy
 ```
 
 Reusable generic inputs should live in their own component directories:
-`universes/`, `selection-models/`, `schedules/`, `funding/`,
+`universes/`, `selection-models/`, `schedules/`, `funding-profiles/`,
 `portfolio-policies/`, `execution-models/`, and `evaluations/`. When a backtest
 uses one of those generic profiles, reference the profile file instead of
 duplicating its values inside the backtest.
@@ -130,14 +130,14 @@ Evaluation windows and train/validation/test split definitions live under
 `evaluations/`. Use this layer for full-period tests, holdout periods,
 walk-forward schedules, rolling windows, and other validation plans.
 
-Generated backtest or evaluation outputs should live under
-`data/stock/backtests/`, not under `strategies/`, `backtests/`, or
-`evaluations/`.
+Generated backtest or evaluation artifacts should live under
+`artifacts/stock/backtests/`, not under `data/`, `strategies/`, `backtests/`,
+or `evaluations/`.
 
 Component test specifications live under `tests/`. Prefer behavioral component
 tests for `selection-models/`, `portfolio-policies/`, and `execution-models/`.
 Use static validation checks for mostly declarative profiles such as
-`universes/`, `funding/`, schedules, evaluations, and backtest link
+`universes/`, `funding-profiles/`, schedules, evaluations, and backtest link
 consistency.
 
 Repository-specific test helper:
@@ -226,8 +226,8 @@ support/resistance levels, or current market data.
 
 ## Watchlist Setup Reviews
 
-Stock watchlists live under `watchlists/`. Setup ranking rubrics live under
-`rankers/`.
+Stock watchlists live under `watchlists/`. Setup evaluation rubrics live under
+`setup-evaluators/`.
 
 When the user asks to review a watchlist, rank a watchlist, or evaluate a
 watchlist for stock setups:
@@ -235,12 +235,10 @@ watchlist for stock setups:
 1. Read `watchlists/README.md` first.
 2. Inspect the requested watchlist file. If no file is named and more than one
    watchlist exists, ask which watchlist to review.
-3. Read `rankers/README.md` and the selected setup ranker.
-4. Use `rankers/lower-risk-swing-entry.md` by default. Use
-   `rankers/quantitative-swing-score.md` when the user asks for a quantitative
-   score, scorecard, conviction ranking, or setup score. Use
-   `rankers/qualitative-pullback-buy-zone.md` only for a lighter qualitative
-   pullback or buy-zone review.
+3. Read `setup-evaluators/README.md` and
+   `setup-evaluators/lower-risk-swing-entry.md`.
+4. Use `setup-evaluators/lower-risk-swing-entry.md` for watchlist setup
+   reviews.
 5. Parse tickers from the watchlist while preserving category/group headings as
    context.
 6. For any analysis that uses price, moving-average, volume, volatility,

@@ -149,7 +149,7 @@ def available_price_symbols() -> set[str]:
 
 
 def validate_funding(report: Report) -> None:
-    for path in profile_files("funding"):
+    for path in profile_files("funding-profiles"):
         text = read(path)
         label = rel(path)
         initial = parse_money(extract_table_value(text, "initial_lump_sum"))
@@ -298,7 +298,7 @@ def validate_component_benchmarks(report: Report) -> None:
             "universes",
             "portfolio-policies",
             "execution-models",
-            "funding",
+            "funding-profiles",
         ]
         missing_harness = [
             part for part in required_harness if not linked_path_containing(linked_files, part)
@@ -319,10 +319,10 @@ def validate_component_benchmarks(report: Report) -> None:
             report.error(f"{label}: metrics section missing")
 
         output_section = extract_section(text, "Output Location")
-        if "data/stock/component-benchmarks/" in output_section:
+        if "artifacts/stock/component-benchmarks/" in output_section:
             report.pass_(f"{label}: output location declared")
         else:
-            report.error(f"{label}: output location missing or outside data/stock/component-benchmarks/")
+            report.error(f"{label}: output location missing or outside artifacts/stock/component-benchmarks/")
 
 
 def markdown_links(text: str) -> list[tuple[str, str]]:
@@ -343,7 +343,7 @@ def component_type_to_dir(component_type: str) -> str | None:
         "execution-model": "execution-models",
         "universe": "universes",
         "schedule": "schedules",
-        "funding-profile": "funding",
+        "funding-profile": "funding-profiles",
         "evaluation-window": "evaluations",
     }.get(component_type)
 

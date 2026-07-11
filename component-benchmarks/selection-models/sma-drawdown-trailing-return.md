@@ -21,7 +21,7 @@ policy, execution assumptions, and funding profile are held fixed?
 | Universe | [High Beta With SOXL](../../universes/high-beta-with-soxl.md) |
 | Portfolio Policy | [New Money Only No Selling](../../portfolio-policies/new-money-only-no-selling.md) |
 | Execution Model | [Frictionless Fractional](../../execution-models/frictionless-fractional.md) |
-| Funding Profile | [Initial 5000 Monthly 100](../../funding/initial-5000-monthly-100.md) |
+| Funding Profile | [Initial 5000 Monthly 100](../../funding-profiles/initial-5000-monthly-100.md) |
 
 ## Variants
 
@@ -67,8 +67,8 @@ rankings as evidence that the selector should remain experimental.
 
 ## Output Location
 
-Generated outputs should live under:
+Generated artifacts should live under:
 
 ```text
-data/stock/component-benchmarks/selection-models/sma-drawdown-trailing-return/
+artifacts/stock/component-benchmarks/selection-models/sma-drawdown-trailing-return/
 ```

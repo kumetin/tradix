@@ -8,6 +8,8 @@ engineering, and strategy testing.
 - `data/stock/prices/daily/` - raw daily OHLCV price history by year
 - `data/stock/features/daily/` - precomputed daily features derived from price
   history
+- `artifacts/` - generated reports, charts, backtest outputs, and other
+  reproducible run artifacts
 - `scripts/market-data-fetchers/` - helpers for downloading market data
 - `scripts/stock-data-enrichment/` - scripts for generating derived datasets
 - `strategies/` - reusable strategy notes and rules
@@ -19,14 +21,14 @@ engineering, and strategy testing.
 - `evaluations/` - data windows and train/validation/test split definitions
 - `universes/` - reusable ticker universes and fallback selections
 - `schedules/` - reusable calendar schedules
-- `funding/` - reusable funding profiles
+- `funding-profiles/` - reusable funding profiles
 - `portfolio-policies/` - reusable portfolio behavior policies
 - `execution-models/` - reusable execution and accounting assumptions
 - `tests/` - component behavior tests and static profile validation specs
 - `experiments/` - experiment registries and run metadata
 - `external-strategies/` - provenance records for strategies defined elsewhere
 - `watchlists/` - ticker universes to review for trade setups
-- `rankers/` - reusable setup ranking rubrics for watchlist reviews
+- `setup-evaluators/` - reusable setup evaluation rubrics for watchlist reviews
 
 ## Platform Model
 
@@ -44,8 +46,9 @@ strategy
 -> evaluation window
 ```
 
-Keep generated output data under `data/stock/backtests/`. Keep reusable
-definitions under their component directories.
+Keep generated artifacts under `artifacts/`. Keep reusable definitions under
+their component directories. Keep `data/` for source and derived datasets used
+as analysis inputs.
 
 Terminology:
 
@@ -111,7 +114,7 @@ tests on logic-heavy components:
 - `execution-models/`
 
 Use static validation checks for mostly declarative profiles such as
-`universes/`, `funding/`, schedules, evaluations, and backtest links.
+`universes/`, `funding-profiles/`, schedules, evaluations, and backtest links.
 
 ## Data Notes
 
@@ -123,6 +126,15 @@ averages, RSI, volatility, or returns, read:
 
 Those notes cover ticker-history gaps, class ticker naming, and blank OHLCV
 rows.
+
+## Artifact Notes
+
+Use `artifacts/` for generated files such as reports, charts, backtest results,
+benchmark outputs, logs, and visualizations. These files are outputs of a run,
+not input datasets.
+
+Use `data/` only for source or derived datasets that analyses read as inputs,
+such as price history and precomputed daily features.
 
 ## IBKR Flex Portfolio Analysis
 
@@ -141,11 +153,11 @@ See `AGENTS.md` for the workflow.
 
 ## Watchlist Reviews
 
-Watchlists define ticker universes, while prompt files define the setup ranking
-rubrics used to evaluate them. For example:
+Watchlists define ticker universes, while prompt files define the setup
+evaluation rubrics used to evaluate them. For example:
 
 - [`watchlists/ai-infrastructure.md`](watchlists/ai-infrastructure.md)
-- [`rankers/lower-risk-swing-entry.md`](rankers/lower-risk-swing-entry.md)
+- [`setup-evaluators/lower-risk-swing-entry.md`](setup-evaluators/lower-risk-swing-entry.md)
 
-See `watchlists/README.md`, `rankers/README.md`, and `AGENTS.md` for the
+See `watchlists/README.md`, `setup-evaluators/README.md`, and `AGENTS.md` for the
 review workflow.

@@ -5,7 +5,7 @@ stock feature data.
 
 The visualizer is intended for rows produced by:
 
-- `rankers/lower-risk-swing-entry.md`
+- `setup-evaluators/lower-risk-swing-entry.md`
 
 It plots adjusted daily close, the entry zone, buy limit, stop loss or
 invalidation level, take-profit level, key support and resistance levels,
@@ -41,7 +41,7 @@ Primary input:
 
 Primary output:
 
-- `data/stock/setup-visualizations/`
+- `artifacts/stock/setup-visualizations/`
 
 Current script:
 

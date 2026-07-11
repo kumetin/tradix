@@ -51,7 +51,7 @@ not add monthly cash after the initial allocation.
 
 ## Funding
 
-[Initial 5000 Only](../../funding/initial-5000-only.md)
+[Initial 5000 Only](../../funding-profiles/initial-5000-only.md)
 
 ## Portfolio Policy
 

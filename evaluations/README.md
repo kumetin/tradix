@@ -12,8 +12,8 @@ Evaluation definitions own:
 - final out-of-sample periods
 
 Strategy rules live under `strategies/`. Configured strategy instances live
-under `backtests/`. Generated evaluation outputs should live under
-`data/stock/backtests/`.
+under `backtests/`. Generated evaluation artifacts should live under
+`artifacts/stock/backtests/`.
 
 ## Available Evaluations
 

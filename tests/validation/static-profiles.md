@@ -60,4 +60,4 @@ python3 tests/validation/validate_static_profiles.py
 | Component under test declared | The spec names one component type and links one primary component profile. |
 | Fixed harness declared | The surrounding strategy, schedule, universe, portfolio policy, execution model, and funding profile are explicit. |
 | Evaluation and metrics declared | Evaluation matrix and metrics sections are present. |
-| Output location declared | Generated outputs are written under `data/stock/component-benchmarks/`. |
+| Output location declared | Generated artifacts are written under `artifacts/stock/component-benchmarks/`. |

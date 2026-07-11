@@ -16,7 +16,7 @@ from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[2]
 FEATURE_ROOT = ROOT / "data/stock/features/daily"
-DEFAULT_OUTPUT_ROOT = ROOT / "data/stock/setup-visualizations"
+DEFAULT_OUTPUT_ROOT = ROOT / "artifacts/stock/setup-visualizations"
 DEFAULT_DAYS = 252
 KNOWN_COLUMNS = [
     "Rank",
@@ -31,7 +31,9 @@ KNOWN_COLUMNS = [
     "Take Profit",
     "Reward/Risk",
     "Setup Status",
+    "Rank Breakdown",
     "Confidence",
+    "Confidence Breakdown",
 ]
 SMA_COLUMNS = {
     20: "sma_20",
@@ -94,7 +96,7 @@ def main() -> int:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Render one Markdown table row from rankers/lower-risk-swing-entry.md "
+            "Render one Markdown table row from setup-evaluators/lower-risk-swing-entry.md "
             "as an SVG setup chart."
         )
     )

@@ -8,7 +8,7 @@ Component tests should focus on modules with meaningful behavior:
 - `portfolio-policies/`
 - `execution-models/`
 
-Static profile directories such as `universes/` and `funding/` usually need
+Static profile directories such as `universes/` and `funding-profiles/` usually need
 validation checks rather than full behavioral tests.
 
 ## Test Types
@@ -40,8 +40,26 @@ declared under `component-benchmarks/`.
 
 ## Executable Checks
 
-Run static profile validation:
+From the repository root, run static profile validation:
 
 ```sh
 python3 tests/validation/validate_static_profiles.py
+```
+
+If your shell is already inside `tests/`, run:
+
+```sh
+python3 validation/validate_static_profiles.py
+```
+
+Run the lower-risk swing-entry evaluator checks from the repository root:
+
+```sh
+python3 tests/test_lower_risk_swing_entry_evaluator.py
+```
+
+Or from inside `tests/`:
+
+```sh
+python3 test_lower_risk_swing_entry_evaluator.py
 ```

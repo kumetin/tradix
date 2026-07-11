@@ -51,7 +51,7 @@ Each benchmark spec should include:
 | Metrics | Define the metrics used to compare variants. |
 | Baselines | Declare simple comparisons such as `SPY`, equal-weight universe, previous profile, or random selector. |
 | Interpretation Rules | Explain what result would make the component reusable, rejected, or only conditionally useful. |
-| Output Location | Point generated outputs under `data/stock/component-benchmarks/`. |
+| Output Location | Point generated artifacts under `artifacts/stock/component-benchmarks/`. |
 
 ## Suggested Metrics By Component Type
 
@@ -83,10 +83,10 @@ degradation, walk-forward consistency, and warm-up exclusion behavior.
 
 ## Output Layout
 
-Generated benchmark outputs should live under:
+Generated benchmark artifacts should live under:
 
 ```text
-data/stock/component-benchmarks/<component-type>/<benchmark-id>/
+artifacts/stock/component-benchmarks/<component-type>/<benchmark-id>/
 ```
 
 Do not store generated result CSVs, charts, or logs in this directory.

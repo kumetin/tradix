@@ -17,5 +17,5 @@ The purpose is to preserve the full search history. A good-looking result after
 hundreds of tried configurations should be interpreted differently from the same
 result after one fixed run.
 
-Generated result data should live under `data/stock/backtests/`. This directory
+Generated result artifacts should live under `artifacts/stock/backtests/`. This directory
 is for experiment metadata and indexes.
