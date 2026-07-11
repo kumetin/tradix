@@ -1,7 +1,7 @@
 # TC-003 Full Period
 
 Evaluation window for
-[TC-003: Random Universe Multi-Position Initial Only](../../backtests/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md).
+[TC-003: Random Universe Multi-Position Initial Only](../../backtests/strategies/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md).
 
 | Setting | Value |
 | --- | --- |

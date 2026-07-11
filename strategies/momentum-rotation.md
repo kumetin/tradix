@@ -1,8 +1,10 @@
 # Momentum Rotation Strategy
 
+Strategy flow: [Momentum Rotation Flow](momentum-rotation.flow.md)
+
 ## Strategy Mechanics
 
-At each scheduled ranking date, using only data available before that date, run
+At each triggered ranking date, using only data available before that date, run
 the configured selection model against the configured universe.
 
 The selection model returns one target ticker. This strategy then waits for the
@@ -29,7 +31,7 @@ If no setup happens during that month, buy at month-end adjusted open. That is t
 
 ## Portfolio Policy Compatibility
 
-The strategy produces a selected ticker for each scheduled allocation date. The
+The strategy produces a selected ticker for each triggered allocation date. The
 portfolio policy decides how that selection affects holdings.
 
 Different backtests may run this strategy with different portfolio policies. A
@@ -56,7 +58,7 @@ parts of the platform.
 | `universe` | `universes/` | Tickers available for monthly ranking and selection. |
 | `fallback_ticker` | `universes/` | Ticker selected when no ticker passes eligibility. |
 | Ticker selection logic | `selection-models/` | Eligibility filters, ranking rules, and fallback behavior used to choose the target ticker. |
-| `rebalance_frequency` | `schedules/` | How often rebalance dates are generated for ranking and new-cash allocation. |
+| `trigger_frequency` | `triggers/` | How often the strategy evaluates signals and creates allocation opportunities. |
 | `initial_lump_sum` | `funding-profiles/` | Cash available in the first trade month before regular monthly contributions. |
 | `monthly_contribution` | `funding-profiles/` | Cash added on each contribution date. |
 | `allow_selling` | `portfolio-policies/` | Whether existing holdings can be sold. |
@@ -69,13 +71,13 @@ parts of the platform.
 
 ## Backtests
 
-Configured backtest instances live under `backtests/momentum-rotation/`.
+Configured backtest instances live under `backtests/strategies/momentum-rotation/`.
 Generated backtest artifacts should live under `artifacts/stock/backtests/`.
 Evaluation windows and data splits live under `evaluations/`.
 
-- [TC-001: High-Beta Universe With SOXL](../backtests/momentum-rotation/tc-001-high-beta-with-soxl.md)
-- [TC-002: Random Universe](../backtests/momentum-rotation/tc-002-random-universe.md)
-- [TC-003: Random Universe Multi-Position Initial Only](../backtests/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md)
+- [TC-001: High-Beta Universe With SOXL](../backtests/strategies/momentum-rotation/tc-001-high-beta-with-soxl.md)
+- [TC-002: Random Universe](../backtests/strategies/momentum-rotation/tc-002-random-universe.md)
+- [TC-003: Random Universe Multi-Position Initial Only](../backtests/strategies/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md)
 
 ## Data Used
 

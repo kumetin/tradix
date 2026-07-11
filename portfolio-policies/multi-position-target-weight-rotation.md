@@ -34,7 +34,7 @@ portfolio may temporarily hold cash between the sell step and replacement buys.
 
 ## Rebalance Rule
 
-Rebalance at each scheduled allocation cycle toward the target weights supplied
+Rebalance at each triggered allocation cycle toward the target weights supplied
 by the selection model.
 
 ## Settings
@@ -43,4 +43,4 @@ by the selection model.
 | --- | --- |
 | `allow_selling` | `true` |
 | `position_policy` | Multiple target-weight positions |
-| `rebalance_frequency` | Use schedule profile |
+| `trigger_frequency` | Use trigger profile |

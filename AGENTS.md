@@ -92,18 +92,29 @@ describe trading rules, portfolio behavior, data requirements, and strategy
 parameters. Do not treat data windows such as `start_date` and `end_date` as
 strategy parameters.
 
-Configured strategy instances live under `backtests/`. A backtest file should
-select a strategy, reference a concrete universe profile, set strategy
-parameters, and explain the edge or hypothesis being tested. Keep schedule,
-fallback selection, funding, portfolio-policy, execution, accounting, and
-evaluation settings in separate sections instead of labeling all of them as
+Strategy flow files under `strategies/` define the canonical ordered pipeline
+for a strategy. Backtests, paper-trading runners, and future live bots should
+consume the strategy flow and supply run-mode-specific configuration around it.
+
+All backtest specifications live under `backtests/`.
+
+Configured strategy backtests live under `backtests/strategies/`. A strategy
+backtest file should select a strategy, reference a concrete universe profile,
+set strategy parameters, and explain the edge or hypothesis being tested. Keep
+trigger, fallback selection, funding, portfolio-policy, execution, accounting,
+and evaluation settings in separate sections instead of labeling all of them as
 strategy parameters.
 
-Backtests should compose components in this conceptual order:
+Component-level backtests live under `backtests/components/`. Use this layer
+when testing one reusable component profile, such as a setup evaluator or
+selection model, under a fixed harness before composing it into a complete
+strategy backtest.
+
+Strategy flows should compose components in this conceptual order:
 
 ```text
 strategy
--> schedule
+-> trigger
 -> universe
 -> selection model
 -> entry rule
@@ -114,7 +125,7 @@ strategy
 ```
 
 Reusable generic inputs should live in their own component directories:
-`universes/`, `selection-models/`, `schedules/`, `funding-profiles/`,
+`universes/`, `selection-models/`, `triggers/`, `funding-profiles/`,
 `portfolio-policies/`, `execution-models/`, and `evaluations/`. When a backtest
 uses one of those generic profiles, reference the profile file instead of
 duplicating its values inside the backtest.
@@ -137,7 +148,7 @@ or `evaluations/`.
 Component test specifications live under `tests/`. Prefer behavioral component
 tests for `selection-models/`, `portfolio-policies/`, and `execution-models/`.
 Use static validation checks for mostly declarative profiles such as
-`universes/`, `funding-profiles/`, schedules, evaluations, and backtest link
+`universes/`, `funding-profiles/`, triggers, evaluations, and backtest link
 consistency.
 
 Repository-specific test helper:

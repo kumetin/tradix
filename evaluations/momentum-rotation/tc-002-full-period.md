@@ -1,7 +1,7 @@
 # TC-002 Full Period
 
 Evaluation window for
-[TC-002: Random Universe](../../backtests/momentum-rotation/tc-002-random-universe.md).
+[TC-002: Random Universe](../../backtests/strategies/momentum-rotation/tc-002-random-universe.md).
 
 | Setting | Value |
 | --- | --- |

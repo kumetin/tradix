@@ -2,26 +2,32 @@
 
 ## Component Under Test
 
-Component type: `selection-model`
+Component type: [`selection-model`](../../../selection-models/README.md)
 
-[SMA Drawdown Trailing Return](../../selection-models/sma-drawdown-trailing-return.md)
+[SMA Drawdown Trailing Return](../../../selection-models/sma-drawdown-trailing-return.md)
 
 ## Question
 
 Does the SMA, drawdown, and trailing-return selector produce a useful ranking
-signal across different market periods when the universe, entry rule, portfolio
-policy, execution assumptions, and funding profile are held fixed?
+signal across different market periods when the [universe](../../../universes/README.md),
+entry rule, [portfolio policy](../../../portfolio-policies/README.md),
+[execution model](../../../execution-models/README.md), and
+[funding profile](../../../funding-profiles/README.md) are held fixed?
+
+## Backtest Type
+
+`harnessed component backtest`
 
 ## Fixed Harness
 
 | Layer | Profile |
 | --- | --- |
-| Strategy | [Momentum Rotation](../../strategies/momentum-rotation.md) |
-| Schedule | [Monthly New Cash](../../schedules/monthly-new-cash.md) |
-| Universe | [High Beta With SOXL](../../universes/high-beta-with-soxl.md) |
-| Portfolio Policy | [New Money Only No Selling](../../portfolio-policies/new-money-only-no-selling.md) |
-| Execution Model | [Frictionless Fractional](../../execution-models/frictionless-fractional.md) |
-| Funding Profile | [Initial 5000 Monthly 100](../../funding-profiles/initial-5000-monthly-100.md) |
+| [Strategy](../../../strategies/README.md) | [Momentum Rotation](../../../strategies/momentum-rotation.md) |
+| [Trigger](../../../triggers/README.md) | [Monthly Allocation](../../../triggers/monthly-allocation.md) |
+| [Universe](../../../universes/README.md) | [High Beta With SOXL](../../../universes/high-beta-with-soxl.md) |
+| [Portfolio Policy](../../../portfolio-policies/README.md) | [New Money Only No Selling](../../../portfolio-policies/new-money-only-no-selling.md) |
+| [Execution Model](../../../execution-models/README.md) | [Frictionless Fractional](../../../execution-models/frictionless-fractional.md) |
+| [Funding Profile](../../../funding-profiles/README.md) | [Initial 5000 Monthly 100](../../../funding-profiles/initial-5000-monthly-100.md) |
 
 ## Variants
 
@@ -34,7 +40,7 @@ policy, execution assumptions, and funding profile are held fixed?
 
 ## Evaluation Matrix
 
-- [TC-001 Full Period](../../evaluations/momentum-rotation/tc-001-full-period.md)
+- [TC-001 Full Period](../../../evaluations/momentum-rotation/tc-001-full-period.md)
 - Add separate bull, bear, recovery, sideways, validation, and locked holdout
   profiles before treating the selector as robust.
 
@@ -52,7 +58,7 @@ policy, execution assumptions, and funding profile are held fixed?
 ## Baselines
 
 - `SPY` buy and hold over the same evaluation windows.
-- Equal-weight [High Beta With SOXL](../../universes/high-beta-with-soxl.md)
+- Equal-weight [High Beta With SOXL](../../../universes/high-beta-with-soxl.md)
   universe over the same evaluation windows.
 - A simple trailing-return-only selector over the same universe, when available.
 
@@ -70,5 +76,5 @@ rankings as evidence that the selector should remain experimental.
 Generated artifacts should live under:
 
 ```text
-artifacts/stock/component-benchmarks/selection-models/sma-drawdown-trailing-return/
+artifacts/stock/backtests/components/selection-models/sma-drawdown-trailing-return/
 ```

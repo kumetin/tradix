@@ -26,12 +26,19 @@ python3 tests/validation/validate_static_profiles.py
 | Recurring contribution | Non-negative. |
 | Initial-only profile | Monthly contribution is `$0`. |
 
-## Schedules
+## Triggers
 
 | Check | Expected |
 | --- | --- |
-| Rebalance frequency | Recognized value such as monthly, weekly, quarterly, or explicit dates. |
-| Signal cutoff | Schedule defines when signal data is allowed to be known. |
+| Trigger frequency | Recognized value such as monthly, weekly, quarterly, or explicit dates. |
+| Signal cutoff | Trigger defines when signal data is allowed to be known. |
+
+## Strategy Flows
+
+| Check | Expected |
+| --- | --- |
+| Referenced files exist | Linked strategy, component, data-note, and evaluation files resolve. |
+| Required stages declared | Flow includes trigger, universe, selection model, portfolio policy, execution model, funding profile, and evaluation window stages. |
 
 ## Evaluations
 
@@ -47,17 +54,17 @@ python3 tests/validation/validate_static_profiles.py
 
 | Check | Expected |
 | --- | --- |
-| Referenced files exist | Strategy, universe, selection model, schedule, funding, portfolio policy, execution model, and evaluation links resolve. |
+| Referenced files exist | Strategy, universe, selection model, trigger, funding, portfolio policy, execution model, and evaluation links resolve. |
 | Compatible selection/policy | Single-position policies receive one target; multi-position policies receive weighted targets. |
 | Compatible execution/policy | Policies that depend on settled cash use an execution model that defines settlement behavior. |
 | Benchmarks declared | Results should be compared to `SPY` and, when possible, an equal-weight universe benchmark. |
 
-## Component Benchmarks
+## Component Backtests
 
 | Check | Expected |
 | --- | --- |
 | Referenced files exist | Component under test, fixed harness profiles, evaluation profiles, and baseline links resolve. |
 | Component under test declared | The spec names one component type and links one primary component profile. |
-| Fixed harness declared | The surrounding strategy, schedule, universe, portfolio policy, execution model, and funding profile are explicit. |
+| Fixed harness declared | The surrounding strategy, trigger, universe, portfolio policy, execution model, and funding profile are explicit. |
 | Evaluation and metrics declared | Evaluation matrix and metrics sections are present. |
-| Output location declared | Generated artifacts are written under `artifacts/stock/component-benchmarks/`. |
+| Output location declared | Generated artifacts are written under `artifacts/stock/backtests/components/`. |

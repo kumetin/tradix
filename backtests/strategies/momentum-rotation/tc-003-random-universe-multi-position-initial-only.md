@@ -1,6 +1,8 @@
 # TC-003: Random Universe Multi-Position Initial Only
 
-Strategy: [Momentum Rotation](../../strategies/momentum-rotation.md)
+Strategy: [Momentum Rotation](../../../strategies/momentum-rotation.md)
+
+Strategy Flow: [Momentum Rotation Flow](../../../strategies/momentum-rotation.flow.md)
 
 ## Edge Being Tested
 
@@ -20,11 +22,11 @@ new-money accumulation or TC-002's single-position rotation.
 
 ## Universe
 
-[Random 20 Organic Capital Growth](../../universes/random-20-organic-capital-growth.md)
+[Random 20 Organic Capital Growth](../../../universes/random-20-organic-capital-growth.md)
 
 ## Selection Model
 
-[Top N SMA Drawdown Trailing Return](../../selection-models/top-n-sma-drawdown-trailing-return.md)
+[Top N SMA Drawdown Trailing Return](../../../selection-models/top-n-sma-drawdown-trailing-return.md)
 
 | Parameter | Value |
 | --- | --- |
@@ -42,27 +44,27 @@ new-money accumulation or TC-002's single-position rotation.
 | `entry_down_days` | `4` |
 | `entry_fallback` | Buy at month-end adjusted open |
 
-## Schedule
+## Trigger
 
-[Monthly New Cash](../../schedules/monthly-new-cash.md)
+[Monthly Allocation](../../../triggers/monthly-allocation.md)
 
-The schedule supplies monthly allocation cycles, but the funding profile does
+The trigger supplies monthly allocation cycles, but the funding profile does
 not add monthly cash after the initial allocation.
 
 ## Funding
 
-[Initial 5000 Only](../../funding-profiles/initial-5000-only.md)
+[Initial 5000 Only](../../../funding-profiles/initial-5000-only.md)
 
 ## Portfolio Policy
 
-[Multi Position Target Weight Rotation](../../portfolio-policies/multi-position-target-weight-rotation.md)
+[Multi Position Target Weight Rotation](../../../portfolio-policies/multi-position-target-weight-rotation.md)
 
 This policy sells positions that leave the target set and rotates toward the
 equal-weight targets returned by the selection model.
 
 ## Execution and Accounting
 
-[IBKR Cash T+1](../../execution-models/ibkr-cash-t-plus-one.md)
+[IBKR Cash T+1](../../../execution-models/ibkr-cash-t-plus-one.md)
 
 This execution model does not reuse unsettled sale proceeds. A rotation may
 therefore spend one or more trading sessions partially or fully in cash before
@@ -70,10 +72,10 @@ buying replacement positions.
 
 ## Evaluation
 
-[TC-003 Full Period](../../evaluations/momentum-rotation/tc-003-full-period.md)
+[TC-003 Full Period](../../../evaluations/momentum-rotation/tc-003-full-period.md)
 
 ## Benchmarks
 
 - `SPY` buy and hold
-- Equal-weight [Random 20 Organic Capital Growth](../../universes/random-20-organic-capital-growth.md)
+- Equal-weight [Random 20 Organic Capital Growth](../../../universes/random-20-organic-capital-growth.md)
   universe

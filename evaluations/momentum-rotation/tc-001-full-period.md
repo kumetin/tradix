@@ -1,7 +1,7 @@
 # TC-001 Full Period
 
 Evaluation window for
-[TC-001: High-Beta Universe With SOXL](../../backtests/momentum-rotation/tc-001-high-beta-with-soxl.md).
+[TC-001: High-Beta Universe With SOXL](../../backtests/strategies/momentum-rotation/tc-001-high-beta-with-soxl.md).
 
 | Setting | Value |
 | --- | --- |

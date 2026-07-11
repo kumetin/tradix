@@ -13,14 +13,14 @@ engineering, and strategy testing.
 - `scripts/market-data-fetchers/` - helpers for downloading market data
 - `scripts/stock-data-enrichment/` - scripts for generating derived datasets
 - `strategies/` - reusable strategy notes and rules
-- `backtests/` - configured strategy instances that wire strategy parameters
-  to reusable profiles
-- `component-benchmarks/` - isolated benchmark specs for one reusable
+- `backtests/` - all backtest specifications
+- `backtests/strategies/` - complete configured strategy backtests
+- `backtests/components/` - component-level backtests for one reusable
   component profile under a fixed harness
 - `selection-models/` - reusable ticker selection rules
 - `evaluations/` - data windows and train/validation/test split definitions
 - `universes/` - reusable ticker universes and fallback selections
-- `schedules/` - reusable calendar schedules
+- `triggers/` - reusable trigger profiles
 - `funding-profiles/` - reusable funding profiles
 - `portfolio-policies/` - reusable portfolio behavior policies
 - `execution-models/` - reusable execution and accounting assumptions
@@ -36,7 +36,7 @@ Backtests are composed from reusable platform components:
 
 ```text
 strategy
--> schedule
+-> trigger
 -> universe
 -> selection model
 -> entry rule
@@ -53,17 +53,19 @@ as analysis inputs.
 Terminology:
 
 - A `component type` is the role in the platform pipeline, such as selection
-  model, portfolio policy, execution model, universe, schedule, funding
+  model, portfolio policy, execution model, universe, trigger, funding
   profile, or evaluation window.
 - A `component profile` is one concrete reusable implementation of a component
   type, such as `selection-models/sma-drawdown-trailing-return.md`.
 - A `strategy stage` is a component type viewed in the ordered strategy flow.
   Use this when discussing sequencing, not when naming reusable files.
-- A `component benchmark` evaluates one component profile or parameter family
+- A `component backtest` evaluates one component profile or parameter family
   under a fixed harness across one or more evaluation windows.
+- A `strategy flow` is the strategy-owned ordered pipeline consumed by
+  backtests, paper-trading runners, and future live bots.
 
-Use `backtests/` for complete configured strategy instances. Use
-`component-benchmarks/` when the question is whether one component profile is
+Use `backtests/strategies/` for complete configured strategy instances. Use
+`backtests/components/` when the question is whether one component profile is
 useful, robust, or worth composing into future strategies.
 
 ## Research Guardrails
@@ -92,7 +94,7 @@ The active strategy being tested is documented here:
 
 It describes a monthly momentum rotation model with:
 
-- monthly scheduled ranking
+- monthly triggered ranking
 - a reusable selection model for trend/drawdown filtering and momentum ranking
 - a high-beta universe supplied by a universe profile
 - portfolio behavior supplied by reusable policy profiles
@@ -100,9 +102,9 @@ It describes a monthly momentum rotation model with:
 
 Configured backtests:
 
-- [`TC-001: High-Beta Universe With SOXL`](backtests/momentum-rotation/tc-001-high-beta-with-soxl.md)
-- [`TC-002: Random Universe`](backtests/momentum-rotation/tc-002-random-universe.md)
-- [`TC-003: Random Universe Multi-Position Initial Only`](backtests/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md)
+- [`TC-001: High-Beta Universe With SOXL`](backtests/strategies/momentum-rotation/tc-001-high-beta-with-soxl.md)
+- [`TC-002: Random Universe`](backtests/strategies/momentum-rotation/tc-002-random-universe.md)
+- [`TC-003: Random Universe Multi-Position Initial Only`](backtests/strategies/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md)
 
 ## Component Tests
 
@@ -114,7 +116,7 @@ tests on logic-heavy components:
 - `execution-models/`
 
 Use static validation checks for mostly declarative profiles such as
-`universes/`, `funding-profiles/`, schedules, evaluations, and backtest links.
+`universes/`, `funding-profiles/`, triggers, evaluations, and backtest links.
 
 ## Data Notes
 
