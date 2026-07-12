@@ -23,7 +23,7 @@ the curated high-beta universe, this case should expose that dependency.
 
 ## Universe
 
-[Random 20 Organic Capital Growth](../../../universes/random-20-organic-capital-growth.md)
+[Random 20 Non-Curated 1](../../../universes/random-20-non-curated-1.md)
 
 ## Selection Model
 
@@ -75,5 +75,5 @@ selected ticker.
 ## Benchmarks
 
 - `SPY` buy and hold
-- Equal-weight [Random 20 Organic Capital Growth](../../../universes/random-20-organic-capital-growth.md)
+- Equal-weight [Random 20 Non-Curated 1](../../../universes/random-20-non-curated-1.md)
   universe

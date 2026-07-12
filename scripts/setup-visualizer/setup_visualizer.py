@@ -19,7 +19,6 @@ FEATURE_ROOT = ROOT / "data/stock/features/daily"
 DEFAULT_OUTPUT_ROOT = ROOT / "artifacts/stock/setup-visualizations"
 DEFAULT_DAYS = 252
 KNOWN_COLUMNS = [
-    "Rank",
     "Ticker",
     "Current Price",
     "Setup Type",
@@ -31,9 +30,10 @@ KNOWN_COLUMNS = [
     "Take Profit",
     "Reward/Risk",
     "Setup Status",
-    "Rank Breakdown",
-    "Confidence",
-    "Confidence Breakdown",
+    "Setup Score",
+    "Setup Score Breakdown",
+    "Evidence Score",
+    "Evidence Score Breakdown",
 ]
 SMA_COLUMNS = {
     20: "sma_20",
@@ -75,17 +75,13 @@ class Setup:
 def main() -> int:
     args = parse_args()
     setup_text = args.setup_line if args.setup_line else sys.stdin.read()
+    svg = render_setup_svg_from_text(
+        setup_text,
+        data_root=args.data_root,
+        days=args.days,
+        end_date=args.end_date,
+    )
     setup = parse_setup(setup_text)
-    rows = load_feature_rows(setup.ticker, args.data_root)
-    rows = filter_rows(rows, args.end_date)
-    if not rows:
-        raise SystemExit(f"No local daily feature rows found for {setup.ticker}")
-
-    visible = rows[-args.days :]
-    if len(visible) < 30:
-        raise SystemExit(f"Only {len(visible)} feature rows found for {setup.ticker}; need at least 30")
-
-    svg = render_svg(setup, visible, args.days)
     output = args.output or default_output_path(setup.ticker)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(svg, encoding="utf-8")
@@ -142,6 +138,67 @@ def parse_setup(text: str) -> Setup:
         "Take Profit": section_after(raw, "profit"),
     }
     return Setup(fallback, raw)
+
+
+def render_setup_svg_from_text(
+    setup_text: str,
+    data_root: Path = FEATURE_ROOT,
+    days: int = DEFAULT_DAYS,
+    end_date: str | None = None,
+) -> str:
+    """Render a setup row or free-form setup text as SVG."""
+
+    setup = parse_setup(setup_text)
+    rows = load_feature_rows(setup.ticker, data_root)
+    return render_setup_svg_from_rows(setup, rows, days=days, end_date=end_date)
+
+
+def render_setup_svg_from_cells(
+    cells: dict[str, str],
+    raw: str = "",
+    feature_rows: list[dict[str, str]] | None = None,
+    data_root: Path = FEATURE_ROOT,
+    days: int = DEFAULT_DAYS,
+    end_date: str | None = None,
+) -> str:
+    """Render setup cells as SVG using supplied or locally loaded feature rows."""
+
+    setup = Setup(cells, raw or markdown_row_from_cells(cells))
+    rows = feature_rows if feature_rows is not None else load_feature_rows(setup.ticker, data_root)
+    return render_setup_svg_from_rows(setup, rows, days=days, end_date=end_date)
+
+
+def render_setup_svg_from_rows(
+    setup: Setup,
+    rows: list[dict[str, str]],
+    days: int = DEFAULT_DAYS,
+    end_date: str | None = None,
+) -> str:
+    """Render a setup SVG from already-loaded daily feature rows."""
+
+    rows = filter_rows(rows, end_date)
+    if not rows:
+        return empty_svg(f"No local daily feature rows found for {setup.ticker}")
+
+    visible = rows[-days:]
+    if len(visible) < 2:
+        return empty_svg(f"Only {len(visible)} feature rows found for {setup.ticker}")
+    return render_svg(setup, visible, days)
+
+
+def markdown_row_from_cells(cells: dict[str, str]) -> str:
+    return "| " + " | ".join(cells.get(column, "") for column in KNOWN_COLUMNS) + " |"
+
+
+def empty_svg(message: str) -> str:
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" '
+        'viewBox="0 0 1280 760" role="img">'
+        '<rect width="1280" height="760" fill="#f8fafc" />'
+        f'<text x="640" y="380" text-anchor="middle" font-family="Inter, Arial, sans-serif" '
+        f'font-size="24" fill="#6b7280">{html.escape(message)}</text>'
+        "</svg>\n"
+    )
 
 
 def split_markdown_row(line: str) -> list[str]:

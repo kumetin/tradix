@@ -1,6 +1,7 @@
-# Random 20 Organic Capital Growth
+# Random 20 Non-Curated 1
 
-Randomly selected 20-stock universe for an organic capital growth setup.
+Randomly selected 20-stock universe that was not hand-picked for momentum
+characteristics.
 
 ## Sampling Method
 

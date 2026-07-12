@@ -9,4 +9,4 @@ of that universe selection policy.
 ## Available Universes
 
 - [High Beta With SOXL](high-beta-with-soxl.md)
-- [Random 20 Organic Capital Growth](random-20-organic-capital-growth.md)
+- [Random 20 Non-Curated 1](random-20-non-curated-1.md)

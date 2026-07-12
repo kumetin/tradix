@@ -134,7 +134,10 @@ def run_isolated_component_backtest(
     if evaluator != "lower-risk-swing-entry":
         raise BacktestDriverError("Use --evaluator lower-risk-swing-entry for this isolated setup-evaluator backtest.")
 
-    module = import_module_from_path(SCRIPT_DIR / "benchmark_lower_risk_swing_entry.py", "benchmark_lower_risk_swing_entry")
+    module = import_module_from_path(
+        SCRIPT_DIR / "setup_evaluator_adapters/lower_risk_swing_entry.py",
+        "lower_risk_swing_entry_setup_evaluator_adapter",
+    )
     return module.main(driver_args)
 
 

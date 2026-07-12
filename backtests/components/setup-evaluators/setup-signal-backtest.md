@@ -9,7 +9,7 @@ Component type: [`setup-evaluator`](../../../setup-evaluators/README.md)
 ## Question
 
 If a [setup evaluator](../../../setup-evaluators/README.md) emits repeatable point-in-time setup signals, does
-following those signals above defined action, score, and confidence thresholds
+following those signals above defined action, setup-score, and evidence-score thresholds
 produce durable realized returns over time compared with simple baselines such
 as `SPY`, equal-weight universe exposure, and unfiltered signal exposure?
 
@@ -48,8 +48,8 @@ Each setup evaluator adapter must emit normalized `SetupSignal` records:
 | `ticker` | Evaluated symbol. |
 | `evaluation_date` | Point-in-time decision date. |
 | `action` | Normalized signal action such as `buy`, `wait`, or `avoid`. |
-| `score` | Numeric signal strength, where higher is better. |
-| `confidence` | Numeric data/setup confidence, where higher is better. |
+| `setup_score` | Numeric setup attractiveness, where higher is better. |
+| `evidence_score` | Numeric data/setup evidence quality, where higher is better. |
 | `current_price` | Decision-date adjusted price. |
 | `entry_price` | Price used for immediate-entry tests. |
 | `buy_limit` | Limit-entry trigger price, if applicable. |
@@ -67,8 +67,19 @@ labels, scoring component names, and setup explanations belong in `metadata`.
 | Close-entry signal test | Enter `buy` signals at evaluation-date adjusted close. | `5`, `10`, `20`, `40`, `60` trading days |
 | Limit-entry trade-plan test | Enter `buy` signals only after the generated buy limit is touched. | `5`, `10`, `20`, `40`, `60` trading days |
 
-Threshold sweeps should test multiple `min_score` and `min_confidence` values
+Threshold sweeps should test multiple `min_setup_score` and `min_evidence_score` values
 instead of assuming the evaluator's default action alone is selective enough.
+
+Evaluator-specific adapters may expose additional backtest run parameters. The
+lower-risk swing-entry adapter supports `--stop-model` values:
+
+| Stop model | Meaning |
+| --- | --- |
+| `current` | Use the evaluator's generated invalidation level. |
+| `risk-1.25` | Widen current buy-limit-to-invalidation risk by `1.25x`. |
+| `risk-1.5` | Widen current buy-limit-to-invalidation risk by `1.5x`. |
+| `support-atr-1.2` | Set stop at support minus `1.2x` ATR. |
+| `support-atr-1.5` | Set stop at support minus `1.5x` ATR. |
 
 ## Entry Mode
 
@@ -93,6 +104,7 @@ occurred before the horizon ended.
 
 ## Evaluation Matrix
 
+- [Lower-Risk Swing Entry Iteration Plan](../../../evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 - [TC-001 Full Period](../../../evaluations/momentum-rotation/tc-001-full-period.md)
 - Add separate market-regime and locked-holdout windows before treating an
   evaluator as reusable inside automated strategies.
@@ -101,7 +113,7 @@ occurred before the horizon ended.
 
 | Metric | Reason |
 | --- | --- |
-| Realized return by action, score, and confidence bucket | Measures whether signal strength predicts first-exit trade P&L. |
+| Realized return by action, setup-score, and evidence-score bucket | Measures whether signal strength predicts first-exit trade P&L. |
 | Win rate | Checks directional usefulness. |
 | Max favorable excursion | Measures upside opportunity after the signal. |
 | Max adverse excursion | Measures realized downside pressure after the signal. |
@@ -133,14 +145,28 @@ needs revised signal rules before automated use.
 Generated artifacts should live under:
 
 ```text
-artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/<evaluator-id>/
+artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/<run-directory>/
+```
+
+Default run directories use:
+
+```text
+<run-timestamp>__<evaluator-id>__<scenario-slug>__<config-hash>
+```
+
+Example:
+
+```text
+20260711-143022Z__lower-risk-swing-entry__random-20-non-curated-1__a8f3c2d4
 ```
 
 Each run should write:
 
 | Artifact | Purpose |
 | --- | --- |
-| `run_config.csv` | Records evaluator, tickers, dates, horizons, benchmark, entry actions, and score/confidence thresholds. |
+| `run_config.csv` | Records evaluator, tickers, dates, horizons, benchmark, entry actions, and setup/evidence score thresholds. |
 | `predictions.csv` | Point-in-time normalized setup signals plus evaluator-specific metadata. |
+| `predictions.html` | Human-readable prediction table with one compact setup visualization per row. |
 | `outcomes.csv` | Entry-mode outcomes with first-exit realized P&L. |
-| `summary.csv` | Grouped metrics by action, rank, score, confidence, and evaluator-specific summary fields. |
+| `summary.csv` | Grouped metrics by action, setup-score, evidence-score, and evaluator-specific summary fields. |
+| `execution-report.md` | Human-readable run report with scenario, configuration, summary tables, derived insights, and next experiment ideas. |

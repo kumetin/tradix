@@ -52,14 +52,13 @@ class LowerRiskSwingEntryEvaluatorTest(unittest.TestCase):
             )
         )
 
-        self.assertEqual(result.rank_score, 84)
-        self.assertIsNone(result.rank)
+        self.assertEqual(result.setup_score, 84)
         self.assertEqual(result.setup_status, STATUS_READY_NEAR_BUY_ZONE)
-        self.assertEqual(result.rank_breakdown_text(), "RS=84; EP=22; SQ=20; RR=17; TS=15; AS=7; ER=3")
-        self.assertEqual(result.confidence, 82)
-        self.assertEqual(result.confidence_breakdown_text(), "CS=82; PD=20; SR=15; MA=15; AD=12; TM=20; RG=0")
+        self.assertEqual(result.setup_score_breakdown_text(), "SS=84; EP=22; SQ=20; RR=17; TS=15; AS=7; ER=3")
+        self.assertEqual(result.evidence_score, 82)
+        self.assertEqual(result.evidence_score_breakdown_text(), "ES=82; PD=20; SR=15; MA=15; AD=12; TM=20; RG=0")
 
-    def test_rank_assigns_ordinal_rank_after_sorting(self) -> None:
+    def test_score_sorts_by_deterministic_setup_score(self) -> None:
         lower_score = LowerRiskSwingEntryInputs(
             current_price=100.0,
             buy_limit=97.0,
@@ -91,21 +90,18 @@ class LowerRiskSwingEntryEvaluatorTest(unittest.TestCase):
             recency_gap_risk=RECENCY_STALE_OR_EVENT_GAP,
         )
 
-        ranked = LowerRiskSwingEntryEvaluator.rank([lower_score, higher_score])
+        scored = LowerRiskSwingEntryEvaluator.score([lower_score, higher_score])
 
-        self.assertEqual([item.rank for item in ranked], [1, 2])
-        self.assertEqual([item.rank_score for item in ranked], [84, 71])
+        self.assertEqual([item.setup_score for item in scored], [84, 71])
 
-    def test_rank_setups_keeps_setup_fields_with_ranked_evaluation(self) -> None:
+    def test_score_setups_keeps_setup_fields_with_scored_evaluation(self) -> None:
         first = LowerRiskSwingEntryEvaluator.construct_setup("LOW", self.synthetic_rows(high=130.0))
         second = LowerRiskSwingEntryEvaluator.construct_setup("HIGH", self.synthetic_rows(high=150.0))
 
-        ranked = LowerRiskSwingEntryEvaluator.rank_setups([first, second])
+        scored = LowerRiskSwingEntryEvaluator.score_setups([first, second])
 
-        self.assertEqual(ranked[0].setup.ticker, "HIGH")
-        self.assertEqual(ranked[0].evaluation.rank, 1)
-        self.assertEqual(ranked[1].setup.ticker, "LOW")
-        self.assertEqual(ranked[1].evaluation.rank, 2)
+        self.assertEqual(scored[0].setup.ticker, "HIGH")
+        self.assertEqual(scored[1].setup.ticker, "LOW")
 
     def test_construct_setup_uses_rolling_high_resistance(self) -> None:
         setup = LowerRiskSwingEntryEvaluator.construct_setup("TEST", self.synthetic_rows(high=150.0))

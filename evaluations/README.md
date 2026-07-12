@@ -20,6 +20,7 @@ under `backtests/`. Generated evaluation artifacts should live under
 - [Momentum Rotation TC-001 Full Period](momentum-rotation/tc-001-full-period.md)
 - [Momentum Rotation TC-002 Full Period](momentum-rotation/tc-002-full-period.md)
 - [Momentum Rotation TC-003 Full Period](momentum-rotation/tc-003-full-period.md)
+- [Lower-Risk Swing Entry Iteration Plan](setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 
 ## Date Semantics
 

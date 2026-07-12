@@ -48,8 +48,42 @@ Required inputs:
 | Direct contract | `Direct Input/Output Contract` section. |
 | Metrics and outputs | `Metrics` and `Output Location` sections. |
 
-The current executable isolated component driver supports setup evaluators that emit
-normalized `SetupSignal` records. Example:
+The current executable isolated component driver supports setup evaluators that
+emit normalized `SetupSignal` records. Evaluator-specific adapters live under:
+
+```text
+scripts/backtests/setup_evaluator_adapters/
+```
+
+Each adapter should translate its evaluator's native output into the generic
+`SetupSignal` interface and delegate execution to
+`scripts/backtests/setup_evaluator_backtest.py`.
+
+Each setup-signal run writes machine-readable CSV artifacts plus
+`predictions.html`, a human-readable prediction table with inline setup charts,
+and `execution-report.md`, a human-readable execution report that summarizes
+the scenario, configuration, key results, generated insights, and next
+experiments to try. The setup charts in `predictions.html` are rendered through
+`scripts/setup-visualizer/setup_visualizer.py` so watchlist and backtest
+visualizations share the same chart logic.
+
+When `--output-dir` is omitted, the driver creates a run directory under:
+
+```text
+artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/
+```
+
+Run directories use:
+
+```text
+<run-timestamp>__<evaluator-id>__<scenario-slug>__<config-hash>
+```
+
+The timestamp is UTC in `YYYYMMDD-HHMMSSZ` format. The config hash is derived
+from evaluator, tickers, date range, cadence, horizons, benchmark, thresholds,
+and entry actions.
+
+Example:
 
 ```sh
 python3 scripts/backtests/run_backtest.py \
@@ -61,7 +95,10 @@ python3 scripts/backtests/run_backtest.py \
   --end-date 2026-03-31 \
   --frequency weekly \
   --horizons 5 10 \
-  --min-score 80
+  --min-setup-score 80 \
+  --min-evidence-score 70 \
+  --stop-model current \
+  --scenario-slug nvda-utility-megacap-smoke
 ```
 
 ## Harnessed Component Backtests

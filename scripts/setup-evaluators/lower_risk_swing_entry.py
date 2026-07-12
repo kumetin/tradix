@@ -4,10 +4,10 @@
 The public flow is:
 
 1. Build a setup with ``LowerRiskSwingEntryEvaluator.construct_setup(...)``.
-2. Score one setup with ``evaluate(...)`` or a batch with ``rank_setups(...)``.
+2. Score one setup with ``evaluate(...)`` or a batch with ``score_setups(...)``.
 
 The module deliberately separates setup construction from scoring so backtests
-can reuse the same support, resistance, stop, reward/risk, rank, and confidence
+can reuse the same support, resistance, stop, reward/risk, setup-score, and evidence-score
 logic that the markdown evaluator expects.
 """
 
@@ -126,34 +126,29 @@ class LowerRiskSwingEntrySetup:
 
 @dataclass(frozen=True)
 class LowerRiskSwingEntryEvaluation:
-    """Score, status, confidence, and optional ordinal rank for one setup.
+    """Deterministic setup score, evidence score, and status for one setup."""
 
-    ``rank`` is ``None`` for a standalone ``evaluate(...)`` call because
-    ordinal rank only exists after comparing a batch.
-    """
-
-    rank: Optional[int]
-    rank_score: int
-    rank_breakdown: Dict[str, int]
+    setup_score: int
+    setup_score_breakdown: Dict[str, int]
     setup_status: str
-    confidence: int
-    confidence_breakdown: Dict[str, int]
+    evidence_score: int
+    evidence_score_breakdown: Dict[str, int]
 
-    def rank_breakdown_text(self) -> str:
-        return format_breakdown("RS", self.rank_score, self.rank_breakdown, ("EP", "SQ", "RR", "TS", "AS", "ER"))
+    def setup_score_breakdown_text(self) -> str:
+        return format_breakdown("SS", self.setup_score, self.setup_score_breakdown, ("EP", "SQ", "RR", "TS", "AS", "ER"))
 
-    def confidence_breakdown_text(self) -> str:
+    def evidence_score_breakdown_text(self) -> str:
         return format_breakdown(
-            "CS",
-            self.confidence,
-            self.confidence_breakdown,
+            "ES",
+            self.evidence_score,
+            self.evidence_score_breakdown,
             ("PD", "SR", "MA", "AD", "TM", "RG"),
         )
 
 
 @dataclass(frozen=True)
-class LowerRiskSwingEntryRankedSetup:
-    """Keeps a constructed setup aligned with its ranked evaluation."""
+class LowerRiskSwingEntryScoredSetup:
+    """Keeps a constructed setup aligned with its deterministic evaluation."""
 
     setup: LowerRiskSwingEntrySetup
     evaluation: LowerRiskSwingEntryEvaluation
@@ -236,15 +231,15 @@ class LowerRiskSwingEntryEvaluator:
         )
 
     @staticmethod
-    def evaluate(inputs: LowerRiskSwingEntryInputs, rank: Optional[int] = None) -> LowerRiskSwingEntryEvaluation:
+    def evaluate(inputs: LowerRiskSwingEntryInputs) -> LowerRiskSwingEntryEvaluation:
         """Score one normalized setup input set.
 
         This method is intentionally pure and deterministic. It does not derive
         trade levels; it only turns already-normalized classifications into the
-        rank score, confidence score, and setup status.
+        setup score, evidence score, and setup status.
         """
 
-        rank_breakdown = {
+        setup_score_breakdown = {
             "EP": entry_proximity_score(inputs.current_price, inputs.buy_limit),
             "SQ": support_quality_score(inputs.support_quality),
             "RR": reward_risk_score(inputs.reward_risk),
@@ -252,7 +247,7 @@ class LowerRiskSwingEntryEvaluator:
             "AS": analyst_support_score(inputs.analyst_support),
             "ER": extension_risk_score(inputs.extension_risk),
         }
-        confidence_breakdown = {
+        evidence_score_breakdown = {
             "PD": price_data_quality_score(inputs.price_data_quality),
             "SR": support_resistance_quality_score(inputs.support_resistance_quality),
             "MA": indicator_quality_score(inputs.indicator_quality),
@@ -261,20 +256,19 @@ class LowerRiskSwingEntryEvaluator:
             "RG": recency_gap_risk_score(inputs.recency_gap_risk),
         }
         return LowerRiskSwingEntryEvaluation(
-            rank=rank,
-            rank_score=sum(rank_breakdown.values()),
-            rank_breakdown=rank_breakdown,
-            setup_status=setup_status(inputs, rank_breakdown, confidence_breakdown),
-            confidence=sum(confidence_breakdown.values()),
-            confidence_breakdown=confidence_breakdown,
+            setup_score=sum(setup_score_breakdown.values()),
+            setup_score_breakdown=setup_score_breakdown,
+            setup_status=setup_status(inputs, setup_score_breakdown, evidence_score_breakdown),
+            evidence_score=sum(evidence_score_breakdown.values()),
+            evidence_score_breakdown=evidence_score_breakdown,
         )
 
     @staticmethod
-    def rank(inputs: List[LowerRiskSwingEntryInputs]) -> List[LowerRiskSwingEntryEvaluation]:
-        """Score and rank normalized inputs without preserving setup fields.
+    def score(inputs: List[LowerRiskSwingEntryInputs]) -> List[LowerRiskSwingEntryEvaluation]:
+        """Score and sort normalized inputs without preserving setup fields.
 
-        Prefer ``rank_setups(...)`` for table output because it keeps ticker,
-        support, resistance, buy limit, and stop fields attached to each ranked
+        Prefer ``score_setups(...)`` for table output because it keeps ticker,
+        support, resistance, buy limit, and stop fields attached to each scored
         evaluation.
         """
 
@@ -282,30 +276,30 @@ class LowerRiskSwingEntryEvaluator:
         indexed = list(enumerate(evaluations))
         indexed.sort(
             key=lambda item: (
-                item[1].rank_score,
-                item[1].confidence,
+                item[1].setup_score,
+                item[1].evidence_score,
                 inputs[item[0]].reward_risk if inputs[item[0]].reward_risk is not None else -1.0,
             ),
             reverse=True,
         )
-        return [replace(evaluation, rank=index + 1) for index, (_, evaluation) in enumerate(indexed)]
+        return [evaluation for _, evaluation in indexed]
 
     @staticmethod
-    def rank_setups(setups: List[LowerRiskSwingEntrySetup]) -> List[LowerRiskSwingEntryRankedSetup]:
-        """Score and rank constructed setups while preserving setup details."""
+    def score_setups(setups: List[LowerRiskSwingEntrySetup]) -> List[LowerRiskSwingEntryScoredSetup]:
+        """Score and sort constructed setups while preserving setup details."""
 
         pairs = [(setup, LowerRiskSwingEntryEvaluator.evaluate(setup.inputs)) for setup in setups]
         pairs.sort(
             key=lambda item: (
-                item[1].rank_score,
-                item[1].confidence,
+                item[1].setup_score,
+                item[1].evidence_score,
                 item[0].reward_risk if item[0].reward_risk is not None else -1.0,
             ),
             reverse=True,
         )
         return [
-            LowerRiskSwingEntryRankedSetup(setup=setup, evaluation=replace(evaluation, rank=index + 1))
-            for index, (setup, evaluation) in enumerate(pairs)
+            LowerRiskSwingEntryScoredSetup(setup=setup, evaluation=evaluation)
+            for setup, evaluation in pairs
         ]
 
 
@@ -329,7 +323,7 @@ def entry_proximity_score(current_price: Optional[float], buy_limit: Optional[fl
 
 
 def support_quality_score(value: str) -> int:
-    """Map support-quality classification to rank-score points."""
+    """Map support-quality classification to setup-score points."""
 
     return {
         SUPPORT_CONFLUENCE_WITHIN_3PCT: 20,
@@ -357,7 +351,7 @@ def reward_risk_score(reward_risk: Optional[float]) -> int:
 
 
 def trend_structure_score(value: str) -> int:
-    """Map trend-structure classification to rank-score points."""
+    """Map trend-structure classification to setup-score points."""
 
     return {
         TREND_CONSTRUCTIVE_ABOVE_RISING_AVERAGES: 15,
@@ -368,7 +362,7 @@ def trend_structure_score(value: str) -> int:
 
 
 def analyst_support_score(value: str) -> int:
-    """Map analyst-support classification to rank-score points."""
+    """Map analyst-support classification to setup-score points."""
 
     return {
         ANALYST_STRONG: 10,
@@ -379,7 +373,7 @@ def analyst_support_score(value: str) -> int:
 
 
 def extension_risk_score(value: str) -> int:
-    """Map extension-risk classification to rank-score points."""
+    """Map extension-risk classification to setup-score points."""
 
     return {
         EXTENSION_LOW: 10,
@@ -390,7 +384,7 @@ def extension_risk_score(value: str) -> int:
 
 
 def price_data_quality_score(value: str) -> int:
-    """Map price-data quality classification to confidence points."""
+    """Map price-data quality classification to evidence-score points."""
 
     return {
         PRICE_DATA_CURRENT: 20,
@@ -400,7 +394,7 @@ def price_data_quality_score(value: str) -> int:
 
 
 def support_resistance_quality_score(value: str) -> int:
-    """Map support/resistance objectivity to confidence points."""
+    """Map support/resistance objectivity to evidence-score points."""
 
     return {
         LEVELS_OBJECTIVE: 15,
@@ -410,7 +404,7 @@ def support_resistance_quality_score(value: str) -> int:
 
 
 def indicator_quality_score(value: str) -> int:
-    """Map indicator completeness to confidence points."""
+    """Map indicator completeness to evidence-score points."""
 
     return {
         INDICATORS_COMPLETE: 15,
@@ -421,7 +415,7 @@ def indicator_quality_score(value: str) -> int:
 
 
 def analyst_data_quality_score(value: str) -> int:
-    """Map analyst-data completeness to confidence points."""
+    """Map analyst-data completeness to evidence-score points."""
 
     return {
         ANALYST_DATA_COMPLETE: 20,
@@ -432,7 +426,7 @@ def analyst_data_quality_score(value: str) -> int:
 
 
 def trade_math_quality_score(value: str) -> int:
-    """Map trade-math consistency to confidence points."""
+    """Map trade-math consistency to evidence-score points."""
 
     return {
         TRADE_MATH_RECONCILES: 20,
@@ -442,7 +436,7 @@ def trade_math_quality_score(value: str) -> int:
 
 
 def recency_gap_risk_score(value: str) -> int:
-    """Map recency and event-gap quality to confidence points."""
+    """Map recency and event-gap quality to evidence-score points."""
 
     return {
         RECENCY_CLEAN: 10,
@@ -453,20 +447,20 @@ def recency_gap_risk_score(value: str) -> int:
 
 def setup_status(
     inputs: LowerRiskSwingEntryInputs,
-    rank_breakdown: Dict[str, int],
-    confidence_breakdown: Dict[str, int],
+    setup_score_breakdown: Dict[str, int],
+    evidence_score_breakdown: Dict[str, int],
 ) -> str:
     """Derive the table setup status from score components and data quality."""
 
-    confidence = sum(confidence_breakdown.values())
-    reward_score = rank_breakdown["RR"]
-    entry_score = rank_breakdown["EP"]
-    support_score = rank_breakdown["SQ"]
-    trend_score = rank_breakdown["TS"]
-    analyst_score = rank_breakdown["AS"]
-    extension_score = rank_breakdown["ER"]
+    evidence_score = sum(evidence_score_breakdown.values())
+    reward_score = setup_score_breakdown["RR"]
+    entry_score = setup_score_breakdown["EP"]
+    support_score = setup_score_breakdown["SQ"]
+    trend_score = setup_score_breakdown["TS"]
+    analyst_score = setup_score_breakdown["AS"]
+    extension_score = setup_score_breakdown["ER"]
 
-    if confidence < 50 or inputs.current_price is None or inputs.buy_limit is None:
+    if evidence_score < 50 or inputs.current_price is None or inputs.buy_limit is None:
         return STATUS_AVOID_FOR_NOW
     if extension_score == 0:
         return STATUS_TOO_EXTENDED

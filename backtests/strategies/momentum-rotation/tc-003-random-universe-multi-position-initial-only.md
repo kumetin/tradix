@@ -22,7 +22,7 @@ new-money accumulation or TC-002's single-position rotation.
 
 ## Universe
 
-[Random 20 Organic Capital Growth](../../../universes/random-20-organic-capital-growth.md)
+[Random 20 Non-Curated 1](../../../universes/random-20-non-curated-1.md)
 
 ## Selection Model
 
@@ -77,5 +77,5 @@ buying replacement positions.
 ## Benchmarks
 
 - `SPY` buy and hold
-- Equal-weight [Random 20 Organic Capital Growth](../../../universes/random-20-organic-capital-growth.md)
+- Equal-weight [Random 20 Non-Curated 1](../../../universes/random-20-non-curated-1.md)
   universe
