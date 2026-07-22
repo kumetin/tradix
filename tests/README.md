@@ -40,6 +40,22 @@ declared under `backtests/components/`.
 
 ## Executable Checks
 
+Run the complete executable Python test suite from the repository root:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+The executable suites currently cover:
+
+- root backtest spec resolution and driver-argument forwarding
+- lower-risk swing-entry construction and scoring
+- the lower-risk swing-entry backtest adapter
+- generic setup-evaluator backtest dates, entries, exits, benchmarks, reports,
+  visualizations, and run hashing
+- stock-price provider normalization into the canonical CSV schema
+- canonical inventory fast-path checks and missing-row detection
+
 From the repository root, run static profile validation:
 
 ```sh
@@ -52,7 +68,7 @@ If your shell is already inside `tests/`, run:
 python3 validation/validate_static_profiles.py
 ```
 
-Run the lower-risk swing-entry evaluator checks from the repository root:
+Run one test module directly when isolating a failure, for example:
 
 ```sh
 python3 tests/test_lower_risk_swing_entry_evaluator.py

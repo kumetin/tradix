@@ -191,7 +191,7 @@ def write_notes(features_dir: Path) -> None:
                 "",
                 "Dataset location: data/stock/features/daily/<year>/<symbol>.csv",
                 "",
-                "Derived from raw prices in data/stock/prices/daily/<year>/<symbol>.csv.",
+                "Derived from canonical prices in data/stock/prices/daily/<year>/<symbol>.csv.",
                 "Rows are computed per symbol across all available years, then split by calendar year.",
                 "Rolling values use adjusted close and require a full actual-trading-row window.",
                 "",
@@ -202,7 +202,7 @@ def write_notes(features_dir: Path) -> None:
                 "- ret_21, ret_63, ret_126, ret_252",
                 "- high_252, dd_252",
                 "",
-                "Blank OHLCV rows from the raw data are skipped rather than forward-filled.",
+                "Blank OHLCV rows from the canonical data are skipped rather than forward-filled.",
                 "",
             ]
         )

@@ -48,3 +48,5 @@ artifacts/**/*
 
 # Local B2 settings (credentials belong in rclone's user config, not here).
 .b2.env
+.b2-sync-initialized
+.b2-canonical-manifest.json

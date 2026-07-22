@@ -78,6 +78,9 @@ CSV_COLUMNS = [
     "source",
 ]
 
+YAHOO_SOURCE = "yahoo_finance_chart"
+TWELVE_DATA_SOURCE = "twelve_data_time_series"
+
 
 def fetch_historical_csv(
     symbol: str,
@@ -122,7 +125,12 @@ def fetch_historical_rows(
         if twelve_data_interval is None:
             raise
         return fetch_twelve_data_rows(
-            symbol, twelve_data_interval, interval, period1, period2, exc
+            symbol,
+            twelve_data_interval,
+            interval,
+            period1,
+            period2,
+            exc,
         )
 
 
@@ -166,6 +174,13 @@ def fetch_yahoo_rows(
     )
 
     payload = fetch_yahoo_payload(symbol, query)
+    return parse_yahoo_payload(payload, symbol, interval)
+
+
+def parse_yahoo_payload(
+    payload: dict[str, Any], symbol: str, interval: str
+) -> list[dict[str, Any]]:
+    """Normalize a Yahoo chart payload into canonical price rows."""
 
     chart = payload.get("chart", {})
     error = chart.get("error")
@@ -201,7 +216,7 @@ def fetch_yahoo_rows(
                 "volume": value_at(quote.get("volume"), index),
                 "currency": meta.get("currency"),
                 "exchange_timezone": meta.get("exchangeTimezoneName"),
-                "source": "yahoo_finance_chart",
+                "source": YAHOO_SOURCE,
             }
         )
 
@@ -252,6 +267,14 @@ def fetch_twelve_data_rows(
             f"{payload.get('message') or payload}"
         )
 
+    return parse_twelve_data_payload(payload, symbol, bar_size)
+
+
+def parse_twelve_data_payload(
+    payload: dict[str, Any], symbol: str, bar_size: str
+) -> list[dict[str, Any]]:
+    """Normalize a Twelve Data time-series payload into canonical rows."""
+
     values = payload.get("values") or []
     meta = payload.get("meta") or {}
     rows: list[dict[str, Any]] = []
@@ -271,7 +294,7 @@ def fetch_twelve_data_rows(
                 "volume": to_int(raw.get("volume")),
                 "currency": meta.get("currency"),
                 "exchange_timezone": meta.get("exchange_timezone"),
-                "source": "twelve_data_time_series",
+                "source": TWELVE_DATA_SOURCE,
             }
         )
 
@@ -356,6 +379,16 @@ def parse_number(value: Any) -> float | int | None:
     if "." in text:
         return float(text)
     return int(text)
+
+
+def to_float(value: Any) -> float | None:
+    parsed = parse_number(value)
+    return None if parsed is None else float(parsed)
+
+
+def to_int(value: Any) -> int | None:
+    parsed = parse_number(value)
+    return None if parsed is None else int(parsed)
 
 
 def format_csv_value(value: Any) -> str:

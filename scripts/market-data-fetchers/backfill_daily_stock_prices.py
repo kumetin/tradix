@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import importlib.util
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -17,6 +16,13 @@ spec = importlib.util.spec_from_file_location("fetch_stock_prices", FETCHER_PATH
 fetcher = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(fetcher)
+CANONICAL_PATH = Path(__file__).with_name("stock_price_canonical.py")
+canonical_spec = importlib.util.spec_from_file_location(
+    "stock_price_canonical", CANONICAL_PATH
+)
+canonical = importlib.util.module_from_spec(canonical_spec)
+assert canonical_spec.loader is not None
+canonical_spec.loader.exec_module(canonical)
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,41 +43,16 @@ def existing_symbols(prices_dir: Path) -> list[str]:
     return sorted({path.stem for path in prices_dir.glob("*/*.csv")})
 
 
-def fetch(symbol: str, start_date: str, end_date: str):
-    return symbol, fetcher.fetch_historical_rows(symbol, start_date, end_date, "1d")
-
-
-def write_year(path: Path, rows: list[dict]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(".csv.tmp")
-    with temporary.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fetcher.CSV_COLUMNS)
-        writer.writeheader()
-        writer.writerows(
-            {column: fetcher.format_csv_value(row.get(column)) for column in fetcher.CSV_COLUMNS}
-            for row in rows
-        )
-    temporary.replace(path)
-
-
-def persist(prices_dir: Path, symbol: str, fetched_rows: list[dict]) -> int:
-    rows_by_date = {}
-    for path in sorted(prices_dir.glob(f"*/{symbol}.csv")):
-        with path.open(newline="") as handle:
-            for row in csv.DictReader(handle):
-                if row.get("date"):
-                    rows_by_date[row["date"]] = row
-    for row in fetched_rows:
-        if row.get("date"):
-            rows_by_date[row["date"]] = row
-
-    rows_by_year = {}
-    for row in rows_by_date.values():
-        rows_by_year.setdefault(row["date"][:4], []).append(row)
-    for year, rows in rows_by_year.items():
-        rows.sort(key=lambda row: row["date"])
-        write_year(prices_dir / year / f"{symbol}.csv", rows)
-    return len(fetched_rows)
+def fetch(
+    storage_symbol: str,
+    start_date: str,
+    end_date: str,
+    prices_dir: Path,
+):
+    market_symbol = canonical.provider_symbol(prices_dir, storage_symbol)
+    return storage_symbol, fetcher.fetch_historical_rows(
+        market_symbol, start_date, end_date, "1d"
+    )
 
 
 def main() -> int:
@@ -80,14 +61,22 @@ def main() -> int:
     failures = []
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {
-            pool.submit(fetch, symbol, args.start_date, args.end_date): symbol
+            pool.submit(
+                fetch,
+                symbol,
+                args.start_date,
+                args.end_date,
+                args.prices_dir,
+            ): symbol
             for symbol in symbols
         }
         for future in as_completed(futures):
             symbol = futures[future]
             try:
                 _, rows = future.result()
-                count = persist(args.prices_dir, symbol, rows)
+                count = canonical.persist(
+                    args.prices_dir, symbol, rows, fetcher.CSV_COLUMNS
+                )
                 print(f"{symbol}: fetched={count}", flush=True)
             except Exception as exc:  # continue so transient failures can be retried
                 failures.append(symbol)
