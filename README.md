@@ -5,7 +5,7 @@ engineering, and strategy testing.
 
 ## What’s in here
 
-- `data/stock/prices/daily/` - raw daily OHLCV price history by year
+- `data/stock/prices/daily/` - canonical daily OHLCV price history by year
 - `data/stock/features/daily/` - precomputed daily features derived from price
   history
 - `artifacts/` - generated reports, charts, backtest outputs, and other
@@ -137,6 +137,40 @@ not input datasets.
 
 Use `data/` only for source or derived datasets that analyses read as inputs,
 such as price history and precomputed daily features.
+
+## Backblaze B2 Storage
+
+Dataset payloads under `data/` and generated outputs under `artifacts/` are
+stored in a private Backblaze B2 bucket and ignored by Git. Dataset `.notes`
+files are stored beside their canonical CSVs in B2 so the format and analysis
+constraints remain version-aligned with the data they describe.
+
+Install rclone, create a Backblaze B2 remote named `b2`, and limit its
+application key to Read and Write access on the intended private bucket. Copy
+the repository's example configuration and edit the bucket name:
+
+```sh
+cp .b2.env.example .b2.env
+rclone config
+```
+
+Upload and verify the local payloads with:
+
+```sh
+scripts/b2-storage.sh upload
+scripts/b2-storage.sh verify
+```
+
+On a fresh clone, restore them with:
+
+```sh
+scripts/b2-storage.sh download
+```
+
+Uploads and downloads are deliberately non-destructive: files that exist only
+at the destination are not deleted. Use `--dry-run` with `upload` or `download`
+to preview transfers. B2 credentials stay in rclone's per-user configuration;
+never put application keys in `.b2.env`.
 
 ## IBKR Flex Portfolio Analysis
 
