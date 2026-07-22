@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
-"""Backfill the repository daily-price dataset for all existing symbols."""
+"""Backfill the repository daily-price dataset for existing symbols.
+
+Parameters:
+    ``start_date`` and ``end_date`` bound the fetch. ``--prices-dir`` selects
+    the canonical dataset, ``--workers`` controls concurrency, and repeatable
+    ``--symbol`` values restrict the otherwise discovered symbol set.
+External sources:
+    Existing yearly price CSV filenames and provider data obtained through
+    ``fetch_stock_prices.py`` (Yahoo Finance with its configured fallback).
+Side effects:
+    Concurrently performs network requests and atomically creates or replaces
+    yearly canonical price CSVs; writes progress and errors to the console.
+Examples:
+    Backfill every symbol already represented in the dataset::
+
+        python3 scripts/market-data-fetchers/backfill_daily_stock_prices.py 2025-01-01 2025-12-31
+
+    Backfill two symbols with reduced concurrency::
+
+        python3 scripts/market-data-fetchers/backfill_daily_stock_prices.py 2026-01-01 2026-07-01 --symbol AAPL --symbol MSFT --workers 2
+"""
 
 from __future__ import annotations
 

@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
-"""Tests for root backtest driver resolution and validation."""
+"""Test root backtest driver resolution and validation.
+
+Parameters:
+    None; unittest discovers the test methods.
+External sources:
+    The local root driver and repository backtest specification Markdown files.
+Side effects:
+    Reads specifications, dynamically imports the driver, and emits unittest
+    results; it does not execute backtests or write artifacts.
+Examples:
+    Run this test module directly::
+
+        python3 tests/test_backtest_root_driver.py
+
+    Run the root-driver test class verbosely::
+
+        python3 -m unittest -v tests.test_backtest_root_driver.BacktestRootDriverTest
+"""
 
 import importlib.util
 import sys

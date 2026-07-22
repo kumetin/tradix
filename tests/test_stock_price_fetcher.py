@@ -1,3 +1,23 @@
+"""Test canonical normalization performed by the stock-price fetcher.
+
+Parameters:
+    None; unittest discovers the test methods.
+External sources:
+    The local ``fetch_stock_prices.py`` module and in-memory provider payloads.
+    No live provider requests are made.
+Side effects:
+    Imports the fetcher dynamically and emits unittest results; repository data
+    is not modified.
+Examples:
+    Run this test module directly::
+
+        python3 tests/test_stock_price_fetcher.py
+
+    Run it through unittest discovery::
+
+        python3 -m unittest discover -s tests -p 'test_stock_price_fetcher.py'
+"""
+
 import datetime as dt
 import importlib.util
 import unittest

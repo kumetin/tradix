@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
 """Fetch analyst upgrade/downgrade activity and write it as CSV.
 
-The implementation intentionally uses only Python's standard library so it can
-run in this repository without installing market-data packages.
+Parameters:
+    ``symbol``, ``start_date``, and ``end_date`` select the security and date
+    range. ``--source`` chooses ``marketbeat`` or ``finnhub``; Finnhub requires
+    ``FINNHUB_API_KEY``.
+External sources:
+    Public MarketBeat forecast HTML pages or Finnhub's
+    ``/stock/upgrade-downgrade`` API. Only the Python standard library is used.
+Side effects:
+    Performs HTTPS requests, writes normalized CSV to stdout, and reports
+    provider or validation failures to stderr. It does not persist the output.
+Examples:
+    Fetch public MarketBeat activity::
 
-Free provider:
-    MarketBeat stock forecast pages. These are public HTML pages and require no
-    API key.
+        python3 scripts/market-data-fetchers/fetch_analyst_activity.py NVDA 2026-01-01 2026-06-30
 
-Optional provider:
-    Finnhub ``/stock/upgrade-downgrade``. Set ``FINNHUB_API_KEY`` and pass
-    ``--source finnhub``.
+    Fetch from Finnhub after configuring its API key::
+
+        FINNHUB_API_KEY=... python3 scripts/market-data-fetchers/fetch_analyst_activity.py NVDA 2026-01-01 2026-06-30 --source finnhub
 """
 
 from __future__ import annotations

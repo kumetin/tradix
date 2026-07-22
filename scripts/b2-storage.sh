@@ -1,4 +1,28 @@
 #!/usr/bin/env bash
+#
+# Manage canonical repository data mirrored to Backblaze B2.
+#
+# Parameters:
+#   Positional command: bootstrap, reconcile, upload, download, verify, or list.
+#   Optional --dry-run previews supported mutations. TRADIX_B2_ENV_FILE selects
+#   the config file; TRADIX_B2_REMOTE, TRADIX_B2_BUCKET, TRADIX_B2_PREFIX, and
+#   TRADIX_B2_MAX_DELETE override its settings.
+# External sources:
+#   Local data/artifact trees, .b2.env, the canonical manifest, and a configured
+#   rclone Backblaze B2 remote.
+# Side effects:
+#   Depending on the command, may download or upload objects, delete remote
+#   objects during sync, repair local canonical data, create directories and a
+#   bootstrap marker, update the manifest, or print verification/listing output.
+# Examples:
+#   Bootstrap a new clone before allowing uploads:
+#     scripts/b2-storage.sh bootstrap
+#   Preview reconciliation without changing remote objects:
+#     scripts/b2-storage.sh reconcile --dry-run
+#   Verify local content and list remote objects:
+#     scripts/b2-storage.sh verify
+#     scripts/b2-storage.sh list
+
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

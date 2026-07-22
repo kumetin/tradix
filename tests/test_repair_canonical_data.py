@@ -1,3 +1,22 @@
+"""Test canonical-data inventory and missing-row detection.
+
+Parameters:
+    None; unittest discovers the test methods.
+External sources:
+    The local ``repair-canonical-data.py`` module and synthetic temporary CSVs.
+Side effects:
+    Creates automatically cleaned temporary directories/files and emits
+    unittest results; canonical repository data is not modified.
+Examples:
+    Run this test module directly::
+
+        python3 tests/test_repair_canonical_data.py
+
+    Run it through unittest discovery::
+
+        python3 -m unittest discover -s tests -p 'test_repair_canonical_data.py'
+"""
+
 import importlib.util
 import tempfile
 import unittest

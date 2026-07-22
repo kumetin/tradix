@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
-"""Fetch historical OHLCV bars and write them as CSV.
+"""Fetch historical OHLCV bars and write them as canonical CSV.
 
-The implementation intentionally uses only Python's standard library so it can
-run in this repository without installing market-data packages.
+Parameters:
+    ``symbol`` is the provider ticker; ``fromDate`` and ``toDate`` bound the
+    requested interval; ``barSize`` selects the bar interval. ``TWELVE_DATA_API_KEY``
+    optionally enables the Twelve Data fallback.
+External sources:
+    Yahoo Finance chart endpoints and, when configured, the Twelve Data
+    time-series API. The implementation otherwise uses only the standard library.
+Side effects:
+    Performs HTTPS requests, writes CSV to stdout, and reports failures to stderr.
+    It does not persist fetched rows in the repository dataset.
+Examples:
+    Fetch daily AAPL bars::
+
+        python3 scripts/market-data-fetchers/fetch_stock_prices.py AAPL 2026-01-01 2026-03-31 1d
+
+    Fetch hourly class-share bars and save stdout::
+
+        python3 scripts/market-data-fetchers/fetch_stock_prices.py BRK.B 2026-07-01 2026-07-08 1h > /tmp/brk-b.csv
 """
 
 from __future__ import annotations

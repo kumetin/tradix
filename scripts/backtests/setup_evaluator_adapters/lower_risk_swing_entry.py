@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
-"""Run the generic setup-signal backtest for lower-risk swing-entry signals."""
+"""Run a setup-signal backtest for lower-risk swing-entry signals.
+
+Parameters:
+    Required CLI options select tickers and evaluation dates. Optional settings
+    control cadence, horizons, benchmark, stop model, score thresholds,
+    execution mode, scenario label, and output directory.
+External sources:
+    Local precomputed feature CSVs plus the lower-risk evaluator and generic
+    backtest engine modules in this repository.
+Side effects:
+    Reads point-in-time feature history, creates an artifact run directory,
+    writes CSV/Markdown/HTML reports and charts, and prints run results.
+Examples:
+    Run a weekly two-ticker backtest::
+
+        python3 scripts/backtests/setup_evaluator_adapters/lower_risk_swing_entry.py --tickers NVDA AMD --start-date 2025-01-01 --end-date 2025-12-31
+
+    Test stricter evidence and an alternate stop model::
+
+        python3 scripts/backtests/setup_evaluator_adapters/lower_risk_swing_entry.py --tickers NVDA --start-date 2025-01-01 --end-date 2025-12-31 --min-evidence-score 70 --stop-model support-atr-1.5 --horizons 10 20 40
+"""
 
 from __future__ import annotations
 

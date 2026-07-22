@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
-"""Root backtest driver."""
+"""Resolve, validate, and dispatch a repository backtest specification.
+
+Parameters:
+    ``spec`` is a strategy or component backtest Markdown path. ``--evaluator``
+    can select a harness adapter, ``--validate-only`` suppresses execution, and
+    arguments after ``--`` are forwarded to the selected driver.
+External sources:
+    Local backtest specifications, referenced profiles, and repository backtest
+    driver modules.
+Side effects:
+    Validation reads files and prints a result. Execution imports and invokes a
+    driver, which may write artifacts according to that driver's contract.
+Examples:
+    Validate a strategy specification without running it::
+
+        python3 scripts/backtests/run_backtest.py backtests/strategies/momentum-rotation/tc-001-high-beta-with-soxl.md --validate-only
+
+    Run an isolated setup-evaluator specification and forward driver options::
+
+        python3 scripts/backtests/run_backtest.py backtests/components/setup-evaluators/setup-signal-backtest.md --evaluator lower-risk-swing-entry -- --tickers NVDA --start-date 2025-01-01 --end-date 2025-12-31
+"""
 
 from __future__ import annotations
 

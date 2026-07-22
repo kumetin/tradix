@@ -1,4 +1,22 @@
-"""Canonical daily-price CSV persistence for normalized provider data."""
+"""Provide canonical daily-price CSV lookup and persistence helpers.
+
+Parameters:
+    Public functions accept a price dataset root, storage/provider symbols,
+    normalized row dictionaries, and the canonical CSV column list.
+External sources:
+    Existing yearly CSV files below the supplied local price dataset root.
+Side effects:
+    Lookup helpers are read-only. Persistence helpers create year directories
+    and atomically replace canonical CSVs via adjacent temporary files.
+Examples:
+    Resolve a stored provider ticker::
+
+        symbol = provider_symbol(Path("data/stock/prices/daily"), "BRK-B")
+
+    Merge normalized rows into canonical yearly files::
+
+        persist(prices_dir, "AAPL", rows, CSV_COLUMNS)
+"""
 
 from __future__ import annotations
 

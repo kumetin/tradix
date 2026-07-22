@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
-"""Tests for deterministic lower-risk swing-entry scoring."""
+"""Test deterministic lower-risk swing-entry construction and scoring.
+
+Parameters:
+    None; unittest discovers the test methods.
+External sources:
+    The local lower-risk evaluator module and synthetic in-memory market inputs.
+Side effects:
+    Dynamically imports the evaluator and emits unittest results; no files or
+    external services are used.
+Examples:
+    Run this test module directly::
+
+        python3 tests/test_lower_risk_swing_entry_evaluator.py
+
+    Run the evaluator test class verbosely::
+
+        python3 -m unittest -v tests.test_lower_risk_swing_entry_evaluator.LowerRiskSwingEntryEvaluatorTest
+"""
 
 import importlib.util
 import sys

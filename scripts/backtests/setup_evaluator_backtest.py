@@ -1,6 +1,25 @@
 #!/usr/bin/env python3
 """Generic point-in-time backtest engine for setup-evaluator signals.
 
+Parameters:
+    ``run_setup_evaluator_backtest`` accepts an evaluator adapter and a
+    ``BacktestConfig`` containing tickers, window, cadence, horizons, benchmark,
+    eligibility thresholds, execution assumptions, and output location.
+External sources:
+    Local precomputed daily feature CSVs and, for chart rendering, the local
+    setup visualizer module. No live market service is contacted.
+Side effects:
+    Reads feature history and creates output directories containing prediction,
+    outcome, summary, metadata, Markdown, HTML, and visualization artifacts.
+Examples:
+    Run an adapter with an explicit configuration::
+
+        run_setup_evaluator_backtest(adapter, BacktestConfig(...))
+
+    Parse CLI-style horizon values for a caller::
+
+        horizons = parse_horizons(["5", "20", "60"])
+
 Evaluator-specific code should adapt its native output to ``SetupSignal`` and
 then call ``run_setup_evaluator_backtest(...)``. The engine handles local
 feature loading, evaluation-date selection, point-in-time row slicing, entry

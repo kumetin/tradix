@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
-"""Tests for the lower-risk swing-entry setup backtest adapter."""
+"""Test the lower-risk swing-entry setup backtest adapter.
+
+Parameters:
+    None; unittest discovers the test methods.
+External sources:
+    Local evaluator and adapter modules plus synthetic in-memory inputs.
+Side effects:
+    Dynamically imports local modules and emits unittest results; no repository
+    artifacts or datasets are changed.
+Examples:
+    Run this test module directly::
+
+        python3 tests/test_lower_risk_swing_entry_backtest_adapter.py
+
+    Run the adapter test class verbosely::
+
+        python3 -m unittest -v tests.test_lower_risk_swing_entry_backtest_adapter.LowerRiskSwingEntryBacktestAdapterTest
+"""
 
 import importlib.util
 import sys

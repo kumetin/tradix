@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
-"""Inventory canonical CSV rows and refetch any rows missing since the last sync."""
+"""Inventory canonical CSV rows and refetch rows missing since the last sync.
+
+Parameters:
+    ``command`` is ``snapshot`` or ``repair``. ``--manifest`` overrides the
+    default ``.b2-canonical-manifest.json`` path.
+External sources:
+    Local canonical price, feature, and analyst CSVs. Repair delegates missing
+    data retrieval to repository market-data fetchers and feature enrichment.
+Side effects:
+    Snapshot atomically replaces the manifest. Repair may perform network
+    requests, rewrite canonical datasets, regenerate features, update the
+    manifest, launch subprocesses, and print status or errors.
+Examples:
+    Record the current canonical inventory::
+
+        python3 scripts/repair-canonical-data.py snapshot
+
+    Repair against a specific manifest::
+
+        python3 scripts/repair-canonical-data.py repair --manifest .b2-canonical-manifest.json
+"""
 
 from __future__ import annotations
 

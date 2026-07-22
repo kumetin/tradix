@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
-"""Fill the repository analyst-activity dataset for symbols or watchlists."""
+"""Fill the repository analyst-activity dataset for symbols or watchlists.
+
+Parameters:
+    Required ``--start-date`` and ``--end-date`` bound activity. ``--dataset-dir``
+    selects storage; repeatable ``--watchlist`` and ``--symbol`` inputs select
+    securities; ``--source`` selects MarketBeat or Finnhub; ``--workers`` sets
+    fetch concurrency. Finnhub also reads ``FINNHUB_API_KEY``.
+External sources:
+    Local watchlist Markdown files plus analyst data fetched by
+    ``fetch_analyst_activity.py`` from MarketBeat or Finnhub.
+Side effects:
+    Performs concurrent HTTPS requests and atomically creates or replaces
+    per-year analyst CSVs; prints progress and failures.
+Examples:
+    Fill activity for explicit symbols::
+
+        python3 scripts/market-data-fetchers/fill_analyst_activity.py --start-date 2026-01-01 --end-date 2026-06-30 --symbol AAPL --symbol MSFT
+
+    Fill every ticker parsed from a watchlist using Finnhub::
+
+        python3 scripts/market-data-fetchers/fill_analyst_activity.py --start-date 2026-01-01 --end-date 2026-06-30 --watchlist watchlists/ai-infrastructure.md --source finnhub
+"""
 
 from __future__ import annotations
 

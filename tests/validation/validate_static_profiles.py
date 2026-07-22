@@ -1,5 +1,23 @@
 #!/usr/bin/env python3
-"""Validate static platform profile markdown files.
+"""Validate static platform profile Markdown files.
+
+Parameters:
+    None; repository roots and expected profile locations are derived from this
+    file's path.
+External sources:
+    Local Markdown profiles, backtest specifications, and validation contracts
+    documented in ``tests/validation/static-profiles.md``.
+Side effects:
+    Reads repository files, writes a pass/warn/fail report to stdout, and exits
+    nonzero when validation errors exist. It does not modify profiles.
+Examples:
+    Run the validator from the repository root::
+
+        python3 tests/validation/validate_static_profiles.py
+
+    Capture its report while preserving the exit status::
+
+        python3 tests/validation/validate_static_profiles.py > /tmp/profile-validation.txt
 
 This is intentionally lightweight: it checks the contracts documented in
 ``tests/validation/static-profiles.md`` without requiring a full backtest engine.

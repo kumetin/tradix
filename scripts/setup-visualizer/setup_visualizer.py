@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
-"""Render a lower-risk swing setup row as a dependency-free SVG chart."""
+"""Render a lower-risk swing setup row as a dependency-free SVG chart.
+
+Parameters:
+    ``--setup-line`` supplies a setup table row (stdin is the fallback),
+    ``--output`` selects the SVG path, ``--features-dir`` selects local feature
+    data, ``--end-date`` caps the chart, and ``--days`` sets its history length.
+External sources:
+    Local precomputed daily feature CSVs and the supplied setup row; no network
+    service or third-party Python package is used.
+Side effects:
+    Creates the output parent directory, writes or replaces an SVG file, and
+    prints the resulting path or validation errors.
+Examples:
+    Render a row supplied on stdin to the default artifact path::
+
+        printf '%s\n' '| NVDA | $170 | Pullback | $165 | $180 | Stable | $166 | $160 | $180 | 2.0 | Ready | 80 | trend | 75 | current |' | python3 scripts/setup-visualizer/setup_visualizer.py
+
+    Render a supplied row with an explicit window and destination::
+
+        python3 scripts/setup-visualizer/setup_visualizer.py --setup-line '| NVDA | $170 | Pullback | $165 | $180 | Stable | $166 | $160 | $180 | 2.0 | Ready | 80 | trend | 75 | current |' --days 90 --end-date 2026-07-01 --output /tmp/nvda.svg
+"""
 
 from __future__ import annotations
 

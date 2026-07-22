@@ -1,4 +1,22 @@
 #!/usr/bin/env bash
+#
+# Bootstrap B2 storage and optionally install automatic user-level syncing.
+#
+# Parameters:
+#   Optional --no-timer performs bootstrap without installing the systemd user
+#   timer. Configuration comes from .b2.env and TRADIX_B2_REMOTE.
+# External sources:
+#   .b2.env.example, a configured rclone remote, b2-storage.sh, and the user's
+#   systemd manager.
+# Side effects:
+#   May create .b2.env with mode 0600, download bootstrap data, create or replace
+#   user systemd service/timer files, reload systemd, and enable/start the timer.
+# Examples:
+#   Bootstrap and install the automatic user timer:
+#     scripts/setup-b2-sync.sh
+#   Bootstrap storage without installing a timer:
+#     scripts/setup-b2-sync.sh --no-timer
+
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

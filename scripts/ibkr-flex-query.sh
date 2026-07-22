@@ -1,28 +1,23 @@
 #!/usr/bin/env bash
 #
-# ibkr-flex-query.sh
+# Run an Interactive Brokers Flex Web Service query by account and query name.
 #
-# Run an Interactive Brokers Flex Web Service query by account and local query
-# name.
-#
-# Usage:
-#   ibkr-flex-query.sh ACCOUNT_ID QUERY_NAME
-#
-# Example:
-#   ibkr-flex-query.sh U14269513 portfolio
-#
-# Configuration:
-#   ~/.ibkr/flex-queries.csv
-#     ACCOUNT_ID,QUERY_NAME,QUERY_ID
-#
-#   ~/.ibkr/flex-tokens.csv
-#     ACCOUNT_ID,QUERY_TOKEN
-#
-# The script finds QUERY_ID from flex-queries.csv and QUERY_TOKEN from
-# flex-tokens.csv, sends the Flex query request to IBKR, then downloads the
-# generated statement to stdout. The statement format is controlled by the
-# configured IBKR Flex query; the local portfolio query is expected to return
-# CSV.
+# Parameters:
+#   ACCOUNT_ID and QUERY_NAME select local credentials/query metadata. IBKR_DIR,
+#   FLEX_QUERIES_FILE, FLEX_TOKENS_FILE, IBKR_FLEX_BASE_URL, and FLEX_API_VERSION
+#   optionally override configuration and endpoint defaults.
+# External sources:
+#   Local flex-queries.csv and flex-tokens.csv files plus the Interactive Brokers
+#   Flex Web Service SendRequest and GetStatement endpoints.
+# Side effects:
+#   Sends HTTPS requests, polls IBKR while a statement is generated, writes the
+#   statement to stdout, and reports errors to stderr. Local configuration is
+#   read only and tokens are never printed.
+# Examples:
+#   Print the configured portfolio statement:
+#     scripts/ibkr-flex-query.sh U12345678 portfolio
+#   Save a named activity query without exposing its token:
+#     scripts/ibkr-flex-query.sh U12345678 activity > /tmp/activity.csv
 
 set -euo pipefail
 

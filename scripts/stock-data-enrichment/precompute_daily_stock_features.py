@@ -1,5 +1,23 @@
 #!/usr/bin/env python3
-"""Precompute daily technical features from yearly OHLCV price CSVs."""
+"""Precompute daily technical features from yearly OHLCV price CSVs.
+
+Parameters:
+    ``--prices-dir`` selects canonical input, ``--features-dir`` selects output,
+    and repeatable ``--symbol`` values restrict processing.
+External sources:
+    Local yearly canonical price CSVs only; no network service is accessed.
+Side effects:
+    Creates feature year directories, replaces generated per-symbol CSVs, and
+    writes the feature dataset ``.notes`` file.
+Examples:
+    Recompute features for the full local dataset::
+
+        python3 scripts/stock-data-enrichment/precompute_daily_stock_features.py
+
+    Recompute only selected symbols into a separate tree::
+
+        python3 scripts/stock-data-enrichment/precompute_daily_stock_features.py --symbol AAPL --symbol MSFT --features-dir /tmp/features
+"""
 
 from __future__ import annotations
 

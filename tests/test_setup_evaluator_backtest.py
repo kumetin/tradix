@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
-"""Tests for generic setup-evaluator backtest helpers."""
+"""Test generic setup-evaluator backtest helpers.
+
+Parameters:
+    None; unittest discovers the test methods.
+External sources:
+    The local generic backtest engine plus synthetic signals, rows, and configs.
+Side effects:
+    Dynamically imports the engine and emits unittest results; tests do not run
+    a live data fetch or write repository artifacts.
+Examples:
+    Run this test module directly::
+
+        python3 tests/test_setup_evaluator_backtest.py
+
+    Run the generic backtest test class verbosely::
+
+        python3 -m unittest -v tests.test_setup_evaluator_backtest.SetupEvaluatorBacktestTest
+"""
 
 import datetime as dt
 import importlib.util

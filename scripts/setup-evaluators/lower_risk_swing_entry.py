@@ -1,6 +1,24 @@
 #!/usr/bin/env python3
 """Deterministic setup construction and scoring for lower-risk swing entries.
 
+Parameters:
+    Public methods accept typed setup inputs, point-in-time price/indicator
+    sequences, optional analyst evidence, and scoring or risk-model values.
+External sources:
+    None. Callers supply all market and analyst observations; this module does
+    not read files or contact services.
+Side effects:
+    None. Construction and scoring return values without mutating external
+    state.
+Examples:
+    Score an already classified setup::
+
+        result = LowerRiskSwingEntryEvaluator.evaluate(LowerRiskSwingEntryInputs(...))
+
+    Build setup levels from point-in-time observations::
+
+        setup = LowerRiskSwingEntryEvaluator.construct_setup(...)
+
 The public flow is:
 
 1. Build a setup with ``LowerRiskSwingEntryEvaluator.construct_setup(...)``.
