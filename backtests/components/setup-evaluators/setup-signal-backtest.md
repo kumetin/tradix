@@ -2,18 +2,18 @@
 
 ## Component Under Test
 
-Component type: [`setup-evaluator`](../../../setup-evaluators/README.md)
+Component type: [`setup-evaluator`](../../../stages/setup-evaluators/README.md)
 
-[Setup Evaluators](../../../setup-evaluators/README.md)
+[Setup Evaluators](../../../stages/setup-evaluators/README.md)
 
 ## Question
 
-If a [setup evaluator](../../../setup-evaluators/README.md) emits repeatable point-in-time setup signals, does
+If a [setup evaluator](../../../stages/setup-evaluators/README.md) emits repeatable point-in-time setup signals, does
 following those signals above defined action, setup-score, and evidence-score thresholds
 produce durable realized returns over time compared with simple baselines such
 as `SPY`, equal-weight universe exposure, and unfiltered signal exposure?
 
-This is a component-level backtest. It tests the [setup evaluator](../../../setup-evaluators/README.md)'s signal
+This is a component-level backtest. It tests the [setup evaluator](../../../stages/setup-evaluators/README.md)'s signal
 playbook, not a full portfolio strategy with cash allocation, overlapping
 positions, settlement, fees, slippage, taxes, or rebalance constraints.
 
@@ -23,16 +23,16 @@ positions, settlement, fees, slippage, taxes, or rebalance constraints.
 
 ## Direct Input/Output Contract
 
-This backtest evaluates [setup-evaluator](../../../setup-evaluators/README.md)
+This backtest evaluates [setup-evaluator](../../../stages/setup-evaluators/README.md)
 signals directly against forward price outcomes. It does not require a
-[strategy flow](../../../strategies/README.md),
-[portfolio policy](../../../portfolio-policies/README.md),
-[funding profile](../../../funding-profiles/README.md), or
-[execution model](../../../execution-models/README.md).
+[canonical strategy pipeline](../../../strategies/README.md#canonical-strategy-decision-pipeline),
+[portfolio policy](../../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies),
+[funding profile](../../../stages/OPERATIONS.md#funding-profiles), or
+[execution model](../../../stages/OPERATIONS.md#execution-and-execution-models).
 
 | Contract | Definition |
 | --- | --- |
-| Input universe | Explicit ticker list supplied to the benchmark runner. See [universes](../../../universes/README.md) for reusable universe profiles. |
+| Input universe | Explicit ticker list supplied to the benchmark runner. See [static universe profiles](../../../configuration/universes/README.md) and the [universe responsibility](../../../stages/OPERATIONS.md#universe-resolution-and-universe-models). |
 | Input data | Point-in-time rows from local daily feature files. |
 | Component output | Normalized `SetupSignal` records. |
 | Outcome model | Entry-mode simulation with first-exit realized P&L. |
@@ -40,7 +40,7 @@ signals directly against forward price outcomes. It does not require a
 
 ## Setup Signal Interface
 
-Each setup evaluator adapter must emit normalized `SetupSignal` records:
+Each [setup evaluator](../../../stages/OPERATIONS.md#setup-evaluators) adapter must emit normalized `SetupSignal` records:
 
 | Field | Meaning |
 | --- | --- |
@@ -52,7 +52,7 @@ Each setup evaluator adapter must emit normalized `SetupSignal` records:
 | `evidence_score` | Numeric data/setup evidence quality, where higher is better. |
 | `current_price` | Decision-date adjusted price. |
 | `entry_price` | Price used for immediate-entry tests. |
-| `buy_limit` | Limit-entry trigger price, if applicable. |
+| `buy_limit` | Limit-entry [trigger](../../../stages/OPERATIONS.md#trigger) price, if applicable. |
 | `stop_loss` | Initial downside exit level. |
 | `take_profit` | Upside exit level. |
 | `metadata` | Evaluator-specific fields such as score breakdowns or setup labels. |
@@ -64,7 +64,7 @@ labels, scoring component names, and setup explanations belong in `metadata`.
 
 | Variant | Entry assumption | Horizons |
 | --- | --- | --- |
-| Close-entry signal test | Enter `buy` signals at evaluation-date adjusted close. | `5`, `10`, `20`, `40`, `60` trading days |
+| Close-entry signal test | Enter `buy` signals at [evaluation](../../../stages/OPERATIONS.md#evaluation-plans)-date adjusted close. | `5`, `10`, `20`, `40`, `60` trading days |
 | Limit-entry trade-plan test | Enter `buy` signals only after the generated buy limit is touched. | `5`, `10`, `20`, `40`, `60` trading days |
 
 Threshold sweeps should test multiple `min_setup_score` and `min_evidence_score` values
@@ -104,8 +104,8 @@ occurred before the horizon ended.
 
 ## Evaluation Matrix
 
-- [Lower-Risk Swing Entry Iteration Plan](../../../evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
-- [TC-001 Full Period](../../../evaluations/momentum-rotation/tc-001-full-period.md)
+- [Lower-Risk Swing Entry Iteration Plan](../../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
+- [TC-001 Full Period](../../../configuration/evaluations/momentum-rotation/tc-001-full-period.md)
 - Add separate market-regime and locked-holdout windows before treating an
   evaluator as reusable inside automated strategies.
 
@@ -132,7 +132,7 @@ occurred before the horizon ended.
 
 ## Interpretation Rules
 
-Treat a [setup evaluator](../../../setup-evaluators/README.md) as promising only if qualifying `buy` signals show
+Treat a [setup evaluator](../../../stages/setup-evaluators/README.md) as promising only if qualifying `buy` signals show
 better realized return, win rate, adverse excursion, or benchmark-relative
 return across more than one horizon and evaluation period.
 

@@ -52,7 +52,7 @@ class BacktestRootDriverTest(unittest.TestCase):
 
     def test_resolves_strategy_backtest(self) -> None:
         spec = run_backtest.resolve_backtest_spec(
-            ROOT / "backtests/strategies/momentum-rotation/tc-001-high-beta-with-soxl.md"
+            ROOT / "backtests/strategies/momentum-rotation/tc-001-point-in-time-sp500.md"
         )
 
         self.assertEqual(spec.kind, run_backtest.SPEC_STRATEGY)
@@ -68,14 +68,14 @@ class BacktestRootDriverTest(unittest.TestCase):
         self.assertEqual(spec.backtest_type, run_backtest.BACKTEST_ISOLATED)
         run_backtest.validate_spec(spec)
 
-    def test_resolves_harnessed_component_backtest(self) -> None:
+    def test_resolves_selection_model_component_backtest(self) -> None:
         spec = run_backtest.resolve_backtest_spec(
             ROOT / "backtests/components/selection-models/sma-drawdown-trailing-return.md"
         )
 
         self.assertEqual(spec.kind, run_backtest.SPEC_COMPONENT)
         self.assertEqual(spec.component_type, "selection-model")
-        self.assertEqual(spec.backtest_type, run_backtest.BACKTEST_HARNESSED)
+        self.assertEqual(spec.backtest_type, run_backtest.BACKTEST_ISOLATED)
         run_backtest.validate_spec(spec)
 
 

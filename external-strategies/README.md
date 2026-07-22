@@ -27,5 +27,5 @@ Recommended result labels:
 | `OUT_OF_SAMPLE` | Data after the author's documented data cutoff. |
 | `POST_PUBLICATION` | Data after the strategy was publicly available. |
 
-Warm-up data may be used to compute indicators before the evaluation start, but
+Warm-up data may be used to compute indicators before the [evaluation](../stages/OPERATIONS.md#evaluation-plans) start, but
 it should not be included in reported performance metrics.

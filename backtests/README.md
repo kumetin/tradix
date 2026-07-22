@@ -3,15 +3,17 @@
 This directory contains all backtest specifications.
 
 - `strategies/` contains full strategy backtests. Each strategy backtest selects
-  a strategy, sets strategy-specific parameters, references reusable platform
-  profiles, and describes the setup being tested.
-- `components/` contains component-level backtests. Each component backtest
-  isolates one reusable component profile under a fixed harness.
+  a falsifiable strategy thesis, binds reusable platform profiles and parameter
+  values, and states the thesis claim or robustness dimension being tested.
+- `components/` contains independent component benchmarks. A component must
+  expose a direct contract that can be compared without a complete strategy.
 
-Reusable strategy definitions live under `strategies/`. Generic platform
-profiles live under directories such as `universes/`, `triggers/`, `funding-profiles/`,
-`selection-models/`, `portfolio-policies/`, `execution-models/`, and
-`evaluations/`. Generated backtest artifacts should live under
+[Reusable strategy definitions](../strategies/README.md) live under
+`strategies/`. Independently
+benchmarkable components and their descriptors live together under `stages/`.
+Static
+universes, [triggers](../stages/OPERATIONS.md#trigger), [funding profiles](../stages/OPERATIONS.md#funding-profiles), and evaluations are configuration inputs,
+not performance components. Generated backtest artifacts should live under
 `artifacts/stock/backtests/`.
 
 Run backtests through the root driver:
@@ -27,40 +29,24 @@ Driver contracts are documented in
 
 ### Momentum Rotation
 
-- [TC-001: High-Beta Universe With SOXL](strategies/momentum-rotation/tc-001-high-beta-with-soxl.md)
-- [TC-002: Random Universe](strategies/momentum-rotation/tc-002-random-universe.md)
-- [TC-003: Random Universe Multi-Position Initial Only](strategies/momentum-rotation/tc-003-random-universe-multi-position-initial-only.md)
+- [TC-001: Point-in-Time S&P 500 New-Money Allocation](strategies/momentum-rotation/tc-001-point-in-time-sp500.md)
+- [TC-002: Investable US Equities Single-Position Rotation](strategies/momentum-rotation/tc-002-investable-us-equities-single-position.md)
+- [TC-003: Investable US Equities Multi-Position Initial Only](strategies/momentum-rotation/tc-003-investable-us-equities-multi-position-initial-only.md)
 
 ## Component Backtests
 
-### Trigger
-
-No trigger component backtests yet.
-
-### Universe
-
-No universe component backtests yet.
-
-### Selection Model
+### [Selection Model](../stages/OPERATIONS.md#selection-and-selection-models)
 
 - [SMA Drawdown Trailing Return Selection Backtest](components/selection-models/sma-drawdown-trailing-return.md)
 
-### Setup Evaluator
+### [Setup Evaluator](../stages/OPERATIONS.md#setup-evaluators)
 
 - [Setup Signal Backtest](components/setup-evaluators/setup-signal-backtest.md)
 
-### Portfolio Policy
+### [Portfolio Policy](../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies)
 
 No portfolio-policy component backtests yet.
 
-### Execution Model
+### [Execution Model](../stages/OPERATIONS.md#execution-and-execution-models)
 
 No execution-model component backtests yet.
-
-### Funding Profile
-
-No funding-profile component backtests yet.
-
-### Evaluation Window
-
-No evaluation-window component backtests yet.

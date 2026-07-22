@@ -14,7 +14,7 @@ Side effects:
 Examples:
     Validate a strategy specification without running it::
 
-        python3 scripts/backtests/run_backtest.py backtests/strategies/momentum-rotation/tc-001-high-beta-with-soxl.md --validate-only
+        python3 scripts/backtests/run_backtest.py backtests/strategies/momentum-rotation/tc-001-point-in-time-sp500.md --validate-only
 
     Run an isolated setup-evaluator specification and forward driver options::
 
@@ -38,7 +38,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SPEC_STRATEGY = "strategy"
 SPEC_COMPONENT = "component"
 BACKTEST_ISOLATED = "isolated component backtest"
-BACKTEST_HARNESSED = "harnessed component backtest"
 
 
 @dataclass(frozen=True)
@@ -61,8 +60,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if spec.kind == SPEC_STRATEGY:
         return run_strategy_backtest(spec, driver_args)
-    if spec.backtest_type == BACKTEST_HARNESSED:
-        return run_harnessed_component_backtest(spec, driver_args)
     if spec.backtest_type == BACKTEST_ISOLATED:
         return run_isolated_component_backtest(spec, args.evaluator, driver_args)
 
@@ -115,32 +112,26 @@ def validate_spec(spec: BacktestSpec) -> None:
     if spec.kind == SPEC_STRATEGY:
         require_section(text, "Edge Being Tested", spec)
         require_section(text, "Benchmarks", spec)
-        if "Strategy Flow:" not in text:
-            raise BacktestDriverError(f"{rel(spec.path)} must reference a Strategy Flow")
+        if not re.search(r"^Strategy:\s*\[[^]]+\]\([^)]+\)", text, re.MULTILINE):
+            raise BacktestDriverError(f"{rel(spec.path)} must reference a Strategy")
         return
 
     if not spec.component_type:
         raise BacktestDriverError(f"{rel(spec.path)} must declare Component Under Test")
-    if spec.backtest_type not in {BACKTEST_ISOLATED, BACKTEST_HARNESSED}:
-        raise BacktestDriverError(f"{rel(spec.path)} must declare a valid Backtest Type")
+    if spec.backtest_type != BACKTEST_ISOLATED:
+        raise BacktestDriverError(
+            f"{rel(spec.path)} must declare {BACKTEST_ISOLATED!r}; "
+            "strategy-dependent comparisons belong under backtests/strategies/"
+        )
     require_section(text, "Question", spec)
     require_section(text, "Metrics", spec)
     require_section(text, "Output Location", spec)
-    if spec.backtest_type == BACKTEST_ISOLATED:
-        require_section(text, "Direct Input/Output Contract", spec)
-    else:
-        require_section(text, "Fixed Harness", spec)
+    require_section(text, "Direct Input/Output Contract", spec)
 
 
 def run_strategy_backtest(spec: BacktestSpec, driver_args: Sequence[str]) -> int:
     raise BacktestDriverError(
         f"Strategy backtest driver selected for {rel(spec.path)}, but no portfolio-level engine is registered yet."
-    )
-
-
-def run_harnessed_component_backtest(spec: BacktestSpec, driver_args: Sequence[str]) -> int:
-    raise BacktestDriverError(
-        f"Harnessed component backtest driver selected for {rel(spec.path)}, but no portfolio-level engine is registered yet."
     )
 
 

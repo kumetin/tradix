@@ -1,0 +1,15 @@
+# [Selection Models](../OPERATIONS.md#selection-and-selection-models)
+
+This directory defines reusable ticker selection models.
+
+Descriptors in this directory follow the
+[selection-model schema](../DESCRIPTOR-SCHEMA.md#selection-model-schema).
+
+A selection model chooses a target ticker from a universe for a scheduled
+allocation cycle. It may include eligibility filters, ranking rules, and
+fallback behavior.
+
+## Available Selection Models
+
+- [SMA Drawdown Trailing Return](sma-drawdown-trailing-return.md)
+- [Top N SMA Drawdown Trailing Return](top-n-sma-drawdown-trailing-return.md)

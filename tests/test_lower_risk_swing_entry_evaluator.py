@@ -25,7 +25,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = ROOT / "scripts/setup-evaluators/lower_risk_swing_entry.py"
+MODULE_PATH = ROOT / "stages/setup-evaluators/lower_risk_swing_entry.py"
 SPEC = importlib.util.spec_from_file_location("lower_risk_swing_entry", MODULE_PATH)
 lower_risk_swing_entry = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = lower_risk_swing_entry

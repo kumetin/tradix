@@ -13,9 +13,9 @@ When reviewing any alert, analyze using:
 - Relationship to short-term and long-term moving averages
 - Volume trends (short-term and long-term)
 - Recent momentum and returns
-- Time since initial trigger event
+- Time since initial [trigger](../stages/OPERATIONS.md#trigger) event
 
-Provide practical re-entry or holding guidance based on available market data.
+Provide practical re-entry or holding guidance based on available [market data](../stages/OPERATIONS.md#market-data-resolution).
 
 ## "check alerts" command behavior
 

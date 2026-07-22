@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This file holds alerts and a playbook for fast, correct responses to large or rapid SOXL price movements. Use it to list alert triggers, data sources, and step-by-step response actions (e.g., size adjustments, stop updates, order templates).
+This file holds alerts and a playbook for fast, correct responses to large or rapid SOXL price movements. Use it to list alert [triggers](../stages/OPERATIONS.md#trigger), data sources, and step-by-step response actions (e.g., size adjustments, stop updates, order templates).
 
-These are high-conviction moves requiring intraday or multi-day monitoring and rapid execution decisions. See `alerts/README.md` for the full alerts directory structure.
+These are high-conviction moves requiring intraday or multi-day monitoring and rapid [execution](../stages/OPERATIONS.md#execution-and-execution-models) decisions. See `alerts/README.md` for the full alerts directory structure.
 
 ## Alert Template
 
@@ -13,7 +13,7 @@ Each alert should include:
 - **Trigger:** What condition activates the alert (e.g., >5% intraday move, gap > X%, volume > Y)
 - **Data sources:** Ticker, current price, intraday range, recent news, options flow, volume, short/long MA, support/resistance
 - **Immediate response:** Concrete actions (e.g., reduce position to X%, set limit/stop orders, alert team)
-- **Follow-up:** Re-evaluation timing and resumption criteria (e.g., re-evaluate after N minutes/hours, resume normal monitoring)
+- **Follow-up:** Re-[evaluation](../stages/OPERATIONS.md#evaluation-plans) timing and resumption criteria (e.g., re-evaluate after N minutes/hours, resume normal monitoring)
 - **Responsible party:** Who executes the response
 - **Status:** Active, triggered, or resolved
 

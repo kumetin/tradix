@@ -4,11 +4,12 @@ This directory defines tests for platform components.
 
 Component tests should focus on modules with meaningful behavior:
 
-- `selection-models/`
-- `portfolio-policies/`
-- `execution-models/`
+- `stages/selection-models/`
+- `stages/portfolio-policies/`
+- `stages/execution-models/`
 
-Static profile directories such as `universes/` and `funding-profiles/` usually need
+Static profile directories such as `configuration/universes/` and
+`configuration/funding/` usually need
 validation checks rather than full behavioral tests.
 
 ## Test Types
@@ -16,7 +17,7 @@ validation checks rather than full behavioral tests.
 | Test Type | Purpose |
 | --- | --- |
 | Component behavior | Verify that a component satisfies its contract in isolation. |
-| Component backtest | Compare one component profile or parameter family under a fixed harness. |
+| Component backtest | Compare one component's direct outputs using a fixed input fixture. |
 | Integration backtest | Verify that a configured backtest works end to end. |
 | Static validation | Verify that profile files are internally consistent. |
 
@@ -27,7 +28,7 @@ the component fulfills its contract without introducing unwanted side effects
 such as excess turnover, cash drag, settlement leakage, or look-ahead bias.
 
 Component backtests may compare performance, but only after the component's
-fixed harness, baselines, evaluation windows, and interpretation rules are
+input contract, baselines, [evaluation](../stages/OPERATIONS.md#evaluation-plans) windows, and interpretation rules are
 declared under `backtests/components/`.
 
 ## Current Test Specs

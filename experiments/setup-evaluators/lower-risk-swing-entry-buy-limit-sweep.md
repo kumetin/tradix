@@ -10,9 +10,9 @@ The 65-80% stop-loss rate from the previous stop-model sweep is not caused by st
 
 ## Component Under Test
 
-- Setup evaluator: [`lower-risk-swing-entry`](../../setup-evaluators/lower-risk-swing-entry.md)
+- [Setup evaluator](../../stages/OPERATIONS.md#setup-evaluators): [`lower-risk-swing-entry`](../../stages/setup-evaluators/lower-risk-swing-entry.md)
 - Backtest spec: [`setup-signal-backtest`](../../backtests/components/setup-evaluators/setup-signal-backtest.md)
-- Evaluation plan: [`lower-risk-swing-entry-iteration-plan`](../../evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
+- [Evaluation plan](../../stages/OPERATIONS.md#evaluation-plans): [`lower-risk-swing-entry-iteration-plan`](../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 - Previous baseline: [`lower-risk-swing-entry-baseline-current-stop`](lower-risk-swing-entry-baseline-current-stop.md)
 - Previous stop-model results: [`lower-risk-swing-entry-stop-model-sweep`](lower-risk-swing-entry-stop-model-sweep.md)
 
@@ -68,7 +68,7 @@ For 3,813 "Ready / near buy zone" trades (20-day horizon):
 | Horizons | `20`, `40`, `60`, `90`, `120` |
 | Benchmark | `SPY` |
 | Secondary baseline | Equal-weight evaluated universe exposure |
-| Universe | [`random-20-non-curated-1`](../../universes/random-20-non-curated-1.md) |
+| Historical universe | Removed random-20 fixture; exact tickers remain in the recorded artifact run configurations. |
 | Evidence score gate | `70` |
 | Setup score threshold | `70` |
 | Stop model | `support-atr-1.5` (best from previous sweep) |
@@ -105,7 +105,7 @@ For 3,813 "Ready / near buy zone" trades (20-day horizon):
 | `strict` | `entry_score >= 22` | Very restrictive, mostly deep-pullback only |
 
 **Rationale:**
-- Current threshold (18) triggers "Ready / near buy zone" when entry_score = 25 (entry = current price)
+- Current threshold (18) [triggers](../../stages/OPERATIONS.md#trigger) "Ready / near buy zone" when entry_score = 25 (entry = current price)
 - Higher thresholds raise the bar for "Ready" status
 - May reclassify some setups to "Wait for pullback" instead
 - Reduces entered trade count but improves quality
@@ -225,7 +225,7 @@ Each scenario will include:
 - `predictions.csv`: Point-in-time setup signals with buy limits, stops, TP, scores
 - `outcomes.csv`: Trade outcomes (entry/exit, returns, exits reasons, MAE/MFE)
 - `summary.csv`: Aggregated statistics by horizon, action, setup score, setup status
-- `execution-report.md`: Backtest run parameters, execution notes, data quality
+- `execution-report.md`: Backtest run parameters, [execution](../../stages/OPERATIONS.md#execution-and-execution-models) notes, data quality
 - `run_config.csv`: Exact parameters used (buy_limit_offset, entry_score_threshold, etc.)
 
 ## Related Decisions
@@ -239,7 +239,7 @@ Each scenario will include:
 
 ## References
 
-- Setup evaluator implementation: `scripts/setup-evaluators/lower_risk_swing_entry.py`
+- Setup evaluator implementation: `stages/setup-evaluators/lower_risk_swing_entry.py`
 - Entry proximity scoring: Lines 306-320
 - Support quality scoring: Lines 357-373
 - Setup status logic: Lines 448-477

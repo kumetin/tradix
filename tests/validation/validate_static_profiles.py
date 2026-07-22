@@ -35,6 +35,40 @@ ROOT = Path(__file__).resolve().parents[2]
 
 RECOGNIZED_TRIGGER_FREQUENCIES = {"daily", "weekly", "monthly", "quarterly"}
 
+OPERATION_LINK_RULES = {
+    "trigger": (r"\btriggers?\b", "OPERATIONS.md#trigger"),
+    "universe": (
+        r"\b(?:universe resolution|universe models?|static universes?)\b",
+        "OPERATIONS.md#universe-resolution-and-universe-models",
+    ),
+    "market data": (
+        r"\b(?:market-data resolution|market data(?: services?| providers?)?)\b",
+        "OPERATIONS.md#market-data-resolution",
+    ),
+    "selection": (
+        r"\b(?:selection models?|selection)\b",
+        "OPERATIONS.md#selection-and-selection-models",
+    ),
+    "setup evaluator": (r"\bsetup evaluators?\b", "OPERATIONS.md#setup-evaluators"),
+    "entry": (
+        r"\b(?:entry decisions?|entry models?)\b",
+        "OPERATIONS.md#entry-decisions-and-entry-models",
+    ),
+    "portfolio": (
+        r"\b(?:portfolio transitions?|portfolio polic(?:y|ies))\b",
+        "OPERATIONS.md#portfolio-transitions-and-portfolio-policies",
+    ),
+    "execution": (
+        r"\b(?:execution models?|execution)\b",
+        "OPERATIONS.md#execution-and-execution-models",
+    ),
+    "funding": (r"\b(?:funding profiles?|funding)\b", "OPERATIONS.md#funding-profiles"),
+    "evaluation": (
+        r"\b(?:evaluation plans?|evaluation)\b",
+        "OPERATIONS.md#evaluation-plans",
+    ),
+}
+
 
 class Report:
     def __init__(self) -> None:
@@ -70,10 +104,10 @@ def main() -> int:
     validate_universes(report)
     validate_funding(report)
     validate_triggers(report)
-    validate_strategy_flows(report)
     validate_evaluations(report)
     validate_strategy_backtests(report)
     validate_component_backtests(report)
+    validate_operation_links(report)
     report.print()
     return 1 if report.errors else 0
 
@@ -137,7 +171,7 @@ def parse_date(value: str | None) -> dt.date | None:
 
 def validate_universes(report: Report) -> None:
     symbols_available = available_price_symbols()
-    for path in profile_files("universes"):
+    for path in profile_files("configuration/universes"):
         text = read(path)
         fallback = extract_inline_code_after_heading(text, "Fallback Ticker")
         tickers = extract_bullets(extract_section(text, "Tickers"))
@@ -154,10 +188,10 @@ def validate_universes(report: Report) -> None:
         else:
             report.pass_(f"{label}: no duplicate tickers")
 
-        if fallback and fallback in tickers:
-            report.pass_(f"{label}: fallback ticker {fallback} is in universe")
-        else:
-            report.error(f"{label}: fallback ticker missing or not in universe")
+        if fallback and fallback not in tickers:
+            report.error(f"{label}: optional fallback ticker is not in universe")
+        elif fallback:
+            report.warn(f"{label}: fallback is deprecated; configure it on the selection model")
 
         missing = sorted(ticker for ticker in tickers if ticker not in symbols_available)
         if missing:
@@ -171,8 +205,32 @@ def available_price_symbols() -> set[str]:
     return {path.stem for path in base.glob("*/*.csv")}
 
 
+def validate_operation_links(report: Report) -> None:
+    missing: list[str] = []
+    operations_page = ROOT / "stages/OPERATIONS.md"
+    excluded_roots = {"artifacts", "data"}
+    for path in sorted(ROOT.rglob("*.md")):
+        relative = path.relative_to(ROOT)
+        if path == operations_page or relative.parts[0] in excluded_roots:
+            continue
+        text = read(path)
+        visible_text = re.sub(r"```[\s\S]*?```", "", text)
+        visible_text = re.sub(r"`[^`]*`", "", visible_text)
+        visible_text = re.sub(r"\[([^]]*)\]\([^)]+\)", r"\1", visible_text)
+        for concept, (pattern, required_target) in OPERATION_LINK_RULES.items():
+            if re.search(pattern, visible_text, re.I) and required_target not in text:
+                missing.append(f"{rel(path)} ({concept})")
+
+    if missing:
+        report.error(
+            "operation-reference links missing: " + ", ".join(missing)
+        )
+    else:
+        report.pass_("Markdown operation mentions link to canonical responsibilities")
+
+
 def validate_funding(report: Report) -> None:
-    for path in profile_files("funding-profiles"):
+    for path in profile_files("configuration/funding"):
         text = read(path)
         label = rel(path)
         initial = parse_money(extract_table_value(text, "initial_lump_sum"))
@@ -193,7 +251,7 @@ def validate_funding(report: Report) -> None:
 
 
 def validate_triggers(report: Report) -> None:
-    for path in profile_files("triggers"):
+    for path in profile_files("configuration/triggers"):
         text = read(path)
         label = rel(path)
         value = extract_table_value(text, "trigger_frequency")
@@ -209,46 +267,8 @@ def validate_triggers(report: Report) -> None:
             report.warn(f"{label}: signal cutoff language not found")
 
 
-def validate_strategy_flows(report: Report) -> None:
-    for path in sorted((ROOT / "strategies").glob("*.flow.md")):
-        text = read(path)
-        label = rel(path)
-        links = markdown_links(text)
-        missing_links = []
-        for _, href in links:
-            if href.startswith("http") or "#" in href and href.startswith("#"):
-                continue
-            href_path = href.split("#", 1)[0]
-            if not href_path:
-                continue
-            target = (path.parent / href_path).resolve()
-            if not target.exists():
-                missing_links.append(href)
-
-        if missing_links:
-            report.error(f"{label}: missing linked files: {', '.join(missing_links)}")
-        else:
-            report.pass_(f"{label}: linked flow files resolve")
-
-        flow_section = extract_section(text, "Flow")
-        required_stages = [
-            "trigger",
-            "universe",
-            "selection_model",
-            "portfolio_policy",
-            "execution_model",
-            "funding_profile",
-            "evaluation_window",
-        ]
-        missing_stages = [stage for stage in required_stages if f"`{stage}`" not in flow_section]
-        if missing_stages:
-            report.error(f"{label}: flow stages missing: {', '.join(missing_stages)}")
-        else:
-            report.pass_(f"{label}: required flow stages declared")
-
-
 def validate_evaluations(report: Report) -> None:
-    for path in sorted((ROOT / "evaluations").glob("*/*.md")):
+    for path in sorted((ROOT / "configuration/evaluations").glob("*/*.md")):
         text = read(path)
         label = rel(path)
         warmup = parse_date(extract_table_value(text, "warmup_start"))
@@ -284,7 +304,7 @@ def validate_strategy_backtests(report: Report) -> None:
         for _, href in links:
             if href.startswith("http"):
                 continue
-            target = (path.parent / href).resolve()
+            target = (path.parent / href.split("#", 1)[0]).resolve()
             linked_files.append(target)
             if not target.exists():
                 missing_links.append(href)
@@ -331,7 +351,7 @@ def validate_component_backtests(report: Report) -> None:
         for _, href in links:
             if href.startswith("http"):
                 continue
-            target = (path.parent / href).resolve()
+            target = (path.parent / href.split("#", 1)[0]).resolve()
             linked_files.append(target)
             if not target.exists():
                 missing_links.append(href)
@@ -347,7 +367,12 @@ def validate_component_backtests(report: Report) -> None:
             report.error(f"{label}: component type not declared")
 
         component_dir = component_type_to_dir(component_type or "")
-        primary_component = linked_path_containing(linked_files, component_dir) if component_dir else None
+        primary_root = ROOT / component_dir if component_dir else None
+        primary_component = (
+            next((linked for linked in linked_files if primary_root in linked.parents), None)
+            if primary_root
+            else None
+        )
         if primary_component:
             report.pass_(f"{label}: primary component profile linked")
         else:
@@ -355,28 +380,15 @@ def validate_component_backtests(report: Report) -> None:
 
         backtest_type_values = extract_inline_codes_after_heading(text, "Backtest Type")
         backtest_type = backtest_type_values[0] if backtest_type_values else ""
-        if backtest_type in {"isolated component backtest", "harnessed component backtest"}:
+        if backtest_type == "isolated component backtest":
             report.pass_(f"{label}: backtest type declared as {backtest_type}")
         else:
-            report.error(f"{label}: missing or invalid backtest type")
+            report.error(
+                f"{label}: backtest type must be isolated component backtest; "
+                "strategy-dependent tests belong under backtests/strategies"
+            )
 
-        if backtest_type == "harnessed component backtest":
-            required_harness = [
-                "strategies",
-                "triggers",
-                "universes",
-                "portfolio-policies",
-                "execution-models",
-                "funding-profiles",
-            ]
-            missing_harness = [
-                part for part in required_harness if not linked_path_containing(linked_files, part)
-            ]
-            if missing_harness:
-                report.error(f"{label}: fixed harness links missing: {', '.join(missing_harness)}")
-            else:
-                report.pass_(f"{label}: fixed harness links resolve")
-        elif extract_section(text, "Direct Input/Output Contract"):
+        if extract_section(text, "Direct Input/Output Contract"):
             report.pass_(f"{label}: direct input/output contract present")
         else:
             report.error(f"{label}: isolated component backtest missing direct input/output contract")
@@ -411,14 +423,14 @@ def linked_path_containing(paths: list[Path], part: str) -> Path | None:
 
 def component_type_to_dir(component_type: str) -> str | None:
     return {
-        "selection-model": "selection-models",
-        "portfolio-policy": "portfolio-policies",
-        "execution-model": "execution-models",
-        "universe": "universes",
-        "trigger": "triggers",
-        "funding-profile": "funding-profiles",
-        "evaluation-window": "evaluations",
-        "setup-evaluator": "setup-evaluators",
+        "selection-model": "stages/selection-models",
+        "portfolio-policy": "stages/portfolio-policies",
+        "execution-model": "stages/execution-models",
+        "universe": "configuration/universes",
+        "trigger": "configuration/triggers",
+        "funding-profile": "configuration/funding",
+        "evaluation-window": "configuration/evaluations",
+        "setup-evaluator": "stages/setup-evaluators",
     }.get(component_type)
 
 

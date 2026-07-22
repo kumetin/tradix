@@ -34,7 +34,7 @@ from typing import Dict, List, Sequence
 ROOT = Path(__file__).resolve().parents[3]
 BACKTEST_SCRIPT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = ROOT / "artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest"
-EVALUATOR_PATH = ROOT / "scripts/setup-evaluators/lower_risk_swing_entry.py"
+EVALUATOR_PATH = ROOT / "stages/setup-evaluators/lower_risk_swing_entry.py"
 
 sys.path.insert(0, str(BACKTEST_SCRIPT_DIR))
 from setup_evaluator_backtest import (  # noqa: E402

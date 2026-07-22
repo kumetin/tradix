@@ -1,4 +1,4 @@
-# Market Data Fetchers
+# [Market Data](../../stages/OPERATIONS.md#market-data-resolution) Fetchers
 
 ## Stock Price Fetcher
 
@@ -17,7 +17,7 @@ python3 scripts/market-data-fetchers/fetch_stock_prices.py AAPL 2026-01-01 2026-
 Date-only end values are inclusive. Datetimes without a timezone are interpreted
 as UTC; timezone-aware inputs are normalized to UTC.
 
-The fetcher owns provider selection and normalization. Yahoo Finance and Twelve
+The fetcher owns provider [selection](../../stages/OPERATIONS.md#selection-and-selection-models) and normalization. Yahoo Finance and Twelve
 Data responses are converted directly to the same canonical row schema; no
 provider response archive or replay layer is retained. Canonical CSVs are the
 first persisted representation and are the input boundary for downstream

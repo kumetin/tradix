@@ -1,72 +1,37 @@
 # Tradix
 
 Tradix is a local research workspace for market-data collection, feature
-engineering, reusable trading-strategy components, and backtesting.
+engineering, falsifiable trading-strategy research, reusable performance
+components, and backtesting.
 
-This guide follows the order in which a new user normally uses the repository:
-set up the code, create or restore the local dataset, define research
-components, configure a strategy or component backtest, run it, and preserve
-the results.
+This README is the repository entry point. Detailed contracts and command
+references live in the linked subsystem documentation.
 
-## 1. Prerequisites
+## Quick Start
 
-The repository currently uses Python's standard library and shell scripts; it
-does not have a package-install step. Use:
+### Prerequisites
 
 - Git
 - Python 3.7 or newer
-- network access when building data from public market-data providers
-- rclone only when restoring or synchronizing data with Backblaze B2
-- systemd and `flock` only when enabling the optional automatic B2 mirror
+- Network access when fetching public market data
+- Optional: rclone for Backblaze B2 snapshot storage
+- Optional: systemd and `flock` for automatic B2 mirroring
 
-Clone the repository and enter it:
+The repository uses Python's standard library and shell scripts; there is no
+package-install step.
 
 ```sh
 git clone YOUR_TRADIX_REPOSITORY_URL
 cd Tradix
-```
-
-Run the data-independent code checks first:
-
-```sh
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Run static profile validation after creating or restoring the dataset in the
-next step. Some validations intentionally confirm that universe tickers exist
-in the local canonical data, so they are expected to fail in an empty clone.
+`data/` and `artifacts/` are intentionally excluded from Git. Build the local
+dataset or restore a snapshot before running data-dependent research.
 
-`data/` and `artifacts/` are intentionally not stored in Git. A fresh clone
-therefore starts without the canonical market dataset or previous run outputs.
-Choose one of the two data-bootstrap paths below.
+### Build Local Data
 
-## 2. Create the Initial Local Dataset
-
-The canonical local datasets are:
-
-```text
-data/stock/prices/daily/<year>/<ticker>.csv
-data/stock/features/daily/<year>/<ticker>.csv
-data/stock/analysts/activity/<year>/<ticker>.csv
-```
-
-Their `.notes` files live beside the CSVs and are part of the corresponding
-dataset. Always read the applicable notes before analyzing the data; they
-describe schemas, incomplete ticker histories, missing trading-day rows, class
-ticker names, and known blank OHLCV rows.
-
-You can either build a new dataset from web providers or restore an existing
-snapshot from B2. You do not need B2 to use Tradix.
-
-### Option A: Build a Dataset from Web Providers
-
-Decide which tickers and dates the research needs. A strategy backtest normally
-gets its tickers from the universe profile linked by its specification. The
-currently executable isolated setup-evaluator backtest gets them from its
-`--tickers` arguments.
-
-Fetch those tickers into the canonical daily-price dataset. Repeat `--symbol`
-for each ticker:
+Fetch canonical daily prices for the required instruments:
 
 ```sh
 python3 scripts/market-data-fetchers/backfill_daily_stock_prices.py \
@@ -75,13 +40,7 @@ python3 scripts/market-data-fetchers/backfill_daily_stock_prices.py \
   --symbol NVDA
 ```
 
-The backfill fetcher tries Yahoo Finance first and has a Twelve Data fallback
-for supported intervals. It merges rows by date and writes them into yearly
-canonical CSVs. Existing rows are preserved and updated safely. If no symbols
-are supplied, it updates every symbol already present in the local dataset.
-
-Next, generate the derived daily features used for moving averages, trailing
-returns, rolling highs, drawdowns, and volume features:
+Generate derived daily features:
 
 ```sh
 python3 scripts/stock-data-enrichment/precompute_daily_stock_features.py \
@@ -89,8 +48,7 @@ python3 scripts/stock-data-enrichment/precompute_daily_stock_features.py \
   --symbol NVDA
 ```
 
-Analyst activity is optional. Fetch it only when the research uses analyst
-ratings or price targets:
+Analyst activity is optional:
 
 ```sh
 python3 scripts/market-data-fetchers/fill_analyst_activity.py \
@@ -99,164 +57,139 @@ python3 scripts/market-data-fetchers/fill_analyst_activity.py \
   --symbol NVDA
 ```
 
-More provider, interval, schema, and watchlist options are documented in
-[`scripts/market-data-fetchers/README.md`](scripts/market-data-fetchers/README.md)
-and feature-generation behavior in
-[`scripts/stock-data-enrichment/README.md`](scripts/stock-data-enrichment/README.md).
+Canonical datasets live under:
 
-Current limitation: the backtest driver does not yet inspect a backtest,
-automatically fetch every missing ticker, and then generate its features.
-Prepare the required local data with the commands above before running the
-backtest. This explicit step is also what makes API use and changes to the
-canonical dataset visible.
+```text
+data/stock/prices/daily/<year>/<ticker>.csv
+data/stock/features/daily/<year>/<ticker>.csv
+data/stock/analysts/activity/<year>/<ticker>.csv
+```
 
-### Option B: Restore a Ready Dataset from Backblaze B2
+Read each dataset's `.notes` file before analysis. Provider behavior, merge
+semantics, intervals, and additional commands are documented in
+[Market Data Fetchers](scripts/market-data-fetchers/README.md) and
+[Stock Data Enrichment](scripts/stock-data-enrichment/README.md).
 
-Install rclone and create a Backblaze B2 remote. The repository defaults expect
-a remote named `b2`, bucket `tradix-kumetix`, and file-name prefix `tradix/`.
-For a different B2 snapshot, copy `.b2.env.example` to `.b2.env` and edit the
-non-secret remote, bucket, and prefix values.
+The backtest driver does not yet fetch missing instruments automatically.
+Persist required prices into the canonical dataset and regenerate features
+before relying on derived indicators.
+
+### Restore a B2 Snapshot
+
+To restore an existing Backblaze B2 snapshot:
 
 ```sh
 rclone config
 scripts/setup-b2-sync.sh
-```
-
-Give the B2 application key read and write access only to the intended bucket
-and prefix. Credentials belong in rclone's per-user configuration, never in
-`.b2.env` or Git.
-
-The setup script verifies that the remote is nonempty, downloads `data/` and
-`artifacts/`, verifies them, records the canonical-row inventory, and marks the
-clone as initialized. On a Linux system with user systemd, it also enables a
-15-minute synchronization timer.
-
-Use this instead when the clone should receive the snapshot but must not become
-an automatically mirroring computer:
-
-```sh
-scripts/setup-b2-sync.sh --no-timer
-```
-
-Only one computer should have the authoritative timer enabled at a time. An
-initialized authoritative clone mirrors its local `data/` and `artifacts/` to
-B2, including artifact deletions. Before mirroring, it detects deleted
-canonical rows, refetches missing price or analyst data, regenerates affected
-features, and aborts without changing B2 if repair is incomplete. Initialization
-checks, a nonempty-remote check, and a maximum deletion limit protect a fresh or
-damaged clone from wiping the bucket.
-
-Verify the restored snapshot:
-
-```sh
 scripts/b2-storage.sh verify
 ```
 
-Whichever bootstrap path you chose, finish by checking that the repository
-profiles and the now-present local dataset agree:
+Only one computer should operate as the authoritative automatic mirror. Use
+`scripts/setup-b2-sync.sh --no-timer` for a non-authoritative restored clone.
+Credentials belong in rclone's per-user configuration, never in Git or
+`.b2.env`.
+
+See [B2 Storage and Recovery](scripts/B2-STORAGE.md) for remote configuration,
+authority transfer, safety controls, reconciliation, repair, and recovery.
+
+After either bootstrap path, validate repository profiles and local inputs:
 
 ```sh
 python3 tests/validation/validate_static_profiles.py
 ```
 
-## 3. Understand the Research Model
+## Research Model
 
-Tradix composes a strategy from reusable stages:
+A strategy is a falsifiable thesis about market behavior and predictability,
+not merely a valid pipeline or arbitrary combination of components. Every
+strategy follows the same decision sequence:
 
 ```text
-strategy
--> trigger
--> universe
--> selection model
--> entry rule
--> portfolio policy
--> execution model
--> funding profile
--> evaluation window
+trigger
+→ universe resolution
+→ market-data resolution
+→ selection
+→ entry decision
+→ portfolio transition
+→ execution
 ```
 
-Each profile should own one kind of decision:
+The responsibilities and test layers for [triggers](stages/OPERATIONS.md#trigger),
+[universe models](stages/OPERATIONS.md#universe-resolution-and-universe-models),
+[market-data resolution](stages/OPERATIONS.md#market-data-resolution),
+[selection models](stages/OPERATIONS.md#selection-and-selection-models),
+[entry models](stages/OPERATIONS.md#entry-decisions-and-entry-models),
+[portfolio policies](stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies),
+[execution models](stages/OPERATIONS.md#execution-and-execution-models),
+[funding profiles](stages/OPERATIONS.md#funding-profiles), and
+[evaluation plans](stages/OPERATIONS.md#evaluation-plans) are defined in the
+canonical operation guide.
 
-- `universes/` defines the eligible ticker set.
-- `triggers/` defines when a strategy evaluates or allocates.
-- `selection-models/` owns eligibility, ranking, target count, weights, and
-  fallback selection.
-- `portfolio-policies/` defines how holdings transition toward that selection.
-- `execution-models/` defines fills, settlement, fees, slippage, and fractional
-  shares.
-- `funding-profiles/` defines capital contributions.
-- `evaluations/` defines research windows and train/validation/test splits.
-- `setup-evaluators/` defines reusable setup-scoring rubrics.
+Use an isolated component benchmark only when behavior has a stable direct
+input/output contract and meaningful metrics without a complete strategy. Use a
+configured strategy backtest to evaluate a thesis implementation or interactions
+among operations. Static inputs, infrastructure, and run configuration receive
+correctness validation and controlled strategy sensitivity tests rather than
+being mislabeled as performance components.
 
-Read the `README.md` in a component directory before adding a profile there.
-Keep data windows out of strategy parameters, and reference a reusable profile
-instead of copying its values into each backtest.
+Research must remain point-in-time: simulated decisions cannot see future
+prices, features, constituents, analyst data, classifications, or fundamentals.
+Keep warm-up rows outside reported performance, label universe bias, preserve
+locked holdouts, and compare results with `SPY` and an equal-weight dated
+universe when possible.
 
-Research must remain point-in-time: a simulated decision cannot see future
-prices, features, constituents, analyst data, or fundamentals. Keep warm-up
-rows outside reported performance, label current-universe bias, preserve locked
-holdouts, and compare results with `SPY` and an equal-weight universe benchmark
-when possible.
+Authoritative references:
 
-## 4. Write a Strategy and Its Components
+- [Strategy concepts and canonical pipeline](strategies/README.md)
+- [Operation responsibilities and benchmarking](stages/OPERATIONS.md)
+- [Reusable stage descriptor schema](stages/DESCRIPTOR-SCHEMA.md)
+- [Component-backtest rules](backtests/components/README.md)
+- [Universe-model descriptors](stages/universe-models/README.md)
 
-Add or reuse the necessary component profiles first. Then create the strategy
-definition and canonical ordered flow under `strategies/`:
+## Define a Strategy
+
+Create a reusable thesis under:
 
 ```text
 strategies/<strategy-name>.md
-strategies/<strategy-name>.flow.md
 ```
 
-The strategy definition explains the trading rules, data requirements,
-portfolio behavior, and strategy parameters. The flow links the ordered
-components used by backtests and, eventually, paper or live runners. See
-[`strategies/README.md`](strategies/README.md) and the existing
-[`momentum-rotation strategy`](strategies/momentum-rotation.md) for examples.
+The definition must state the proposed mechanism, observable point-in-time
+proxies, prediction horizon, required component behavior, thesis-preserving
+variations, thesis-changing substitutions, and falsification criteria. Concrete
+run profiles and evaluation windows do not belong to the strategy definition.
 
-If the strategy came from an external source, freeze its exact rules and
-provenance under `external-strategies/` before testing it. Post-publication data
-is the cleanest out-of-sample evidence.
+See [Strategies](strategies/README.md) and the
+[Momentum Rotation strategy](strategies/momentum-rotation.md). Externally sourced
+strategies should preserve their exact rules and provenance under
+`external-strategies/` before testing.
 
-Run static validation after changing profiles or links:
+## Configure and Run a Backtest
 
-```sh
-python3 tests/validation/validate_static_profiles.py
-```
-
-## 5. Configure a Backtest
-
-Put complete strategy backtest specifications under:
+Full strategy experiments live under:
 
 ```text
 backtests/strategies/<strategy-id>/<test-id>.md
 ```
 
-A strategy backtest selects the strategy and flow, links concrete component
-profiles, defines the evaluation and benchmarks, and states the edge being
-tested.
+A specification links a strategy and concrete universe, selection, entry,
+portfolio, execution, trigger, funding, and evaluation bindings as applicable.
+It states the thesis claim or robustness dimension being tested and declares
+benchmarks.
 
-Put tests of one reusable component under:
+Independent component benchmarks live under:
 
 ```text
 backtests/components/<component-type>/<backtest-id>.md
 ```
 
-Use an isolated component backtest for a component with a direct executable
-input/output contract. Use a harnessed component backtest when the component
-must be evaluated inside a fixed strategy pipeline. See
-[`backtests/README.md`](backtests/README.md) for specification layout and
-[`scripts/backtests/README.md`](scripts/backtests/README.md) for driver support.
-
-Validate a specification without executing it:
+Validate a strategy specification without executing it:
 
 ```sh
 python3 scripts/backtests/run_backtest.py \
-  backtests/strategies/momentum-rotation/tc-001-high-beta-with-soxl.md \
+  backtests/strategies/momentum-rotation/tc-001-point-in-time-sp500.md \
   --validate-only
 ```
-
-## 6. Run Tests and Backtests
 
 Run the complete test suite before an experiment:
 
@@ -265,97 +198,61 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 python3 tests/validation/validate_static_profiles.py
 ```
 
-The current executable driver supports isolated setup-evaluator backtests. For
-example:
+See [Backtest Specifications](backtests/README.md) and
+[Backtest Drivers](scripts/backtests/README.md) for required sections, supported
+drivers, CLI arguments, artifacts, and examples.
 
-```sh
-python3 scripts/backtests/run_backtest.py \
-  backtests/components/setup-evaluators/setup-signal-backtest.md \
-  --evaluator lower-risk-swing-entry \
-  -- \
-  --tickers NVDA TLN ECL NEE SO AMZN XEL EXC \
-  --start-date 2026-01-01 \
-  --end-date 2026-03-31 \
-  --frequency weekly \
-  --horizons 5 10 \
-  --min-setup-score 80 \
-  --min-evidence-score 70 \
-  --stop-model current \
-  --scenario-slug utility-megacap-smoke
-```
+## Current Capabilities and Limitations
 
-Strategy backtests and harnessed component backtests can currently be resolved
-and validated, but no portfolio-level simulation engine is registered for
-executing them yet.
+- The root driver resolves and validates strategy and isolated component specs.
+- The executable isolated-component driver currently supports
+  [setup evaluators](stages/OPERATIONS.md#setup-evaluators).
+- No portfolio-level strategy simulation engine is registered yet.
+- The new point-in-time universe descriptors require canonical security-master,
+  historical membership, and float-share inputs that are not yet present.
+- Missing data required by a backtest must currently be fetched and enriched
+  explicitly before execution.
 
 Generated reports, CSVs, charts, logs, and visualizations belong under
-`artifacts/stock/backtests/`; they are outputs, not input datasets. Record
-meaningful runs, including unsuccessful ones, under `experiments/` once they
-become part of the research record.
+`artifacts/stock/backtests/`. Preserve meaningful unsuccessful runs as well as
+winners under `experiments/` once they become part of the research record.
 
-## 7. Maintain Data and B2 After Setup
+## Data Maintenance
 
-Without B2, update canonical price data and regenerate features whenever a
-research window or universe expands. Never treat a CSV fetched only to stdout
-or a temporary directory as part of the dataset.
+Never treat data fetched only to stdout or a temporary directory as part of the
+research dataset. Persist canonical rows and regenerate dependent features after
+price changes.
 
-On an initialized authoritative B2 clone, reconcile or verify manually with:
+For local/provider maintenance, see
+[Market Data Fetchers](scripts/market-data-fetchers/README.md). For snapshot
+verification, reconciliation, automatic mirroring, and authority transfer, see
+[B2 Storage and Recovery](scripts/B2-STORAGE.md).
 
-```sh
-scripts/b2-storage.sh reconcile
-scripts/b2-storage.sh verify
-```
+## Other Workflows
 
-Preview a transfer with `--dry-run`, list stored objects with
-`scripts/b2-storage.sh list`, and inspect the automatic mirror with:
-
-```sh
-systemctl --user status tradix-b2-sync.timer
-journalctl --user -u tradix-b2-sync.service
-```
-
-To move authority to another computer, first stop the old timer and perform a
-final reconciliation. Then bootstrap the new clone and leave its timer as the
-only enabled one:
-
-```sh
-systemctl --user disable --now tradix-b2-sync.timer
-scripts/b2-storage.sh reconcile
-```
-
-## 8. Other Workflows
-
-- `watchlists/` contains ticker lists for setup reviews; start with
-  [`watchlists/README.md`](watchlists/README.md).
-- `alerts/` contains sold-stock re-entry watches and alerts; start with
-  [`alerts/README.md`](alerts/README.md).
+- [Watchlists](watchlists/README.md) contain ticker lists for setup reviews.
+- [Alerts](alerts/README.md) contain sold-stock re-entry watches and alerts.
 - `tradingview/` contains Pine Script indicators.
 - Interactive Brokers Flex portfolio analysis uses
-  `scripts/ibkr-flex-query.sh ACCOUNT_ID portfolio` with private configuration
-  under `~/.ibkr/`; see `AGENTS.md` for the protected-token workflow.
+  `scripts/ibkr-flex-query.sh ACCOUNT_ID portfolio`; the protected-token workflow
+  is documented in `AGENTS.md`.
 
 ## Repository Map
 
 ```text
-data/                       canonical and derived input datasets (not in Git)
-artifacts/                  generated research outputs (not in Git)
+data/                          canonical and derived datasets; not stored in Git
+artifacts/                     generated research outputs; not stored in Git
 scripts/market-data-fetchers/  market-data download and canonical merge tools
 scripts/stock-data-enrichment/ derived-feature generation
-scripts/backtests/          backtest validation and executable drivers
-strategies/                 reusable strategy definitions and ordered flows
-backtests/                  strategy and component backtest specifications
-universes/                  reusable ticker universes
-triggers/                   reusable strategy triggers
-selection-models/           eligibility, ranking, targets, and fallback rules
-portfolio-policies/         holdings-transition rules
-execution-models/           fills, settlement, costs, and accounting assumptions
-funding-profiles/            contribution schedules
-evaluations/                evaluation windows and validation plans
-setup-evaluators/           setup-scoring definitions
-tests/                      executable tests and static validation
-experiments/                experiment registries and run metadata
-external-strategies/        frozen external specifications and provenance
-watchlists/                 setup-review ticker lists
-alerts/                     alert and re-entry-watch definitions
-tradingview/                Pine Script indicators
+scripts/backtests/             backtest validation and executable drivers
+strategies/                    falsifiable strategy theses and canonical pipeline
+backtests/                     strategy and component backtest specifications
+stages/                        reusable stages, descriptors, and operation guide
+configuration/                 reusable declarative and run-context profiles
+tests/                         executable tests and static validation
+experiments/                   experiment registries and run metadata
+external-strategies/           frozen external specifications and provenance
+watchlists/                    setup-review ticker lists
+alerts/                        alert and re-entry-watch definitions
+tradingview/                   Pine Script indicators
 ```

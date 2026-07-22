@@ -9,7 +9,7 @@ Every backtest run that is used for research should eventually be recorded with:
 - strategy
 - component profile links
 - parameter values
-- evaluation partition
+- [evaluation](../stages/OPERATIONS.md#evaluation-plans) partition
 - configuration hash
 - metrics
 
@@ -20,7 +20,7 @@ result after one fixed run.
 Generated result artifacts should live under `artifacts/stock/backtests/`. This directory
 is for experiment metadata and indexes.
 
-## Setup Evaluator Experiments
+## [Setup Evaluator](../stages/OPERATIONS.md#setup-evaluators) Experiments
 
 - [Lower-Risk Swing Entry Baseline: Current Stop](setup-evaluators/lower-risk-swing-entry-baseline-current-stop.md)
 - [Lower-Risk Swing Entry Stop-Model Sweep](setup-evaluators/lower-risk-swing-entry-stop-model-sweep.md)

@@ -13,7 +13,7 @@ When reviewing a watchlist:
 2. Preserve the source group/category for context.
 3. Do not treat entries as alerts, prior sells, or portfolio holdings.
 4. Evaluate entries as candidate setups unless the user says otherwise.
-5. Use the setup evaluators under `setup-evaluators/` to rank the list.
+5. Use the [setup evaluators](../stages/OPERATIONS.md#setup-evaluators) under `stages/setup-evaluators/` to rank the list.
 6. Follow the daily stock price data workflow in `AGENTS.md` for any price,
    moving-average, volume, volatility, return, RSI, support/resistance, or
    drawdown analysis.

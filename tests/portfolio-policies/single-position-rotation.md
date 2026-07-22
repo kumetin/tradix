@@ -1,6 +1,6 @@
 # Component Test: Single Position Rotation
 
-Component: [Single Position Rotation](../../portfolio-policies/single-position-rotation.md)
+Component: [Single Position Rotation](../../stages/portfolio-policies/single-position-rotation.md)
 
 ## Purpose
 
@@ -11,7 +11,7 @@ when the selected ticker changes.
 
 | Case | Given | Expected |
 | --- | --- | --- |
-| First selection | No current holdings and selected ticker `AAPL` | Buy `AAPL` using available cash according to the execution model. |
+| First [selection](../../stages/OPERATIONS.md#selection-and-selection-models) | No current holdings and selected ticker `AAPL` | Buy `AAPL` using available cash according to the [execution model](../../stages/OPERATIONS.md#execution-and-execution-models). |
 | Same selection | Current holding `AAPL`, selected ticker `AAPL` | Do not sell. Add any new cash to `AAPL`. |
 | New selection | Current holding `AAPL`, selected ticker `MSFT` | Sell `AAPL`; replacement buy timing is controlled by the execution model. |
 | No settled proceeds | Current holding sold but proceeds are unsettled | Wait for execution model before buying replacement ticker. |

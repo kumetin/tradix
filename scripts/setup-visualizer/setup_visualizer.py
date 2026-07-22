@@ -112,7 +112,7 @@ def main() -> int:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Render one Markdown table row from setup-evaluators/lower-risk-swing-entry.md "
+            "Render one Markdown table row from stages/setup-evaluators/lower-risk-swing-entry.md "
             "as an SVG setup chart."
         )
     )

@@ -1,6 +1,6 @@
 # Backtest Drivers
 
-Use `run_backtest.py` as the single entry point for backtest execution:
+Use `run_backtest.py` as the single entry point for backtest [execution](../../stages/OPERATIONS.md#execution-and-execution-models):
 
 ```sh
 python3 scripts/backtests/run_backtest.py BACKTEST_SPEC.md -- DRIVER_ARGS...
@@ -21,14 +21,15 @@ Required inputs:
 
 | Requirement | Source |
 | --- | --- |
-| Strategy definition | `Strategy:` link in the spec. |
-| Strategy flow | `Strategy Flow:` link in the spec. |
+| [Strategy definition](../../strategies/README.md) | `Strategy:` link in the spec. |
 | Test hypothesis | `Edge Being Tested` section. |
-| Run profiles | Universe, selection model, trigger, funding, portfolio policy, execution model, and evaluation sections. |
+| Run profiles | Universe, [selection model](../../stages/OPERATIONS.md#selection-and-selection-models), [trigger](../../stages/OPERATIONS.md#trigger), [funding](../../stages/OPERATIONS.md#funding-profiles), [portfolio policy](../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies), execution model, and [evaluation](../../stages/OPERATIONS.md#evaluation-plans) sections. |
 | Baselines | `Benchmarks` section. |
 
 Strategy backtests orient final results around the complete strategy
-configuration. The root driver can resolve and validate these specs, but a
+configuration. All strategies follow the canonical pipeline in
+[`strategies/README.md`](../../strategies/README.md); backtests bind its concrete
+profiles without referencing a separate flow file. The root driver can resolve and validate these specs, but a
 portfolio-level simulation engine is not registered yet.
 
 ## Isolated Component Backtests
@@ -48,7 +49,7 @@ Required inputs:
 | Direct contract | `Direct Input/Output Contract` section. |
 | Metrics and outputs | `Metrics` and `Output Location` sections. |
 
-The current executable isolated component driver supports setup evaluators that
+The current executable isolated component driver supports [setup evaluators](../../stages/OPERATIONS.md#setup-evaluators) that
 emit normalized `SetupSignal` records. Evaluator-specific adapters live under:
 
 ```text
@@ -101,32 +102,12 @@ python3 scripts/backtests/run_backtest.py \
   --scenario-slug nvda-utility-megacap-smoke
 ```
 
-## Harnessed Component Backtests
-
-Expected spec location:
-
-```text
-backtests/components/<component-type>/<backtest-id>.md
-```
-
-Required inputs:
-
-| Requirement | Source |
-| --- | --- |
-| Component type/profile | `Component Under Test` section. |
-| Backtest type | `Backtest Type` = `harnessed component backtest`. |
-| Fixed harness | `Fixed Harness` section with surrounding strategy stages. |
-| Metrics and outputs | `Metrics` and `Output Location` sections. |
-
-Harnessed component backtests use the same portfolio-level simulation engine as
-strategy backtests. Final results should be oriented around the component under
-test: incremental contribution, parameter stability, failure modes, and whether
-the component should be reused.
-
 ## Result Orientation
 
 | Backtest type | Primary result orientation |
 | --- | --- |
 | Strategy backtest | Whether the complete strategy configuration works end to end. |
-| Harnessed component backtest | Whether the component improves or destabilizes a fixed strategy harness. |
 | Isolated component backtest | Whether the component's direct outputs have predictive or economic value. |
+
+There is no harnessed component category. A comparison that requires a complete
+strategy is a strategy backtest with that configuration axis varied.

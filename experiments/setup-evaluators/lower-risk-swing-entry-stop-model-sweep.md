@@ -5,7 +5,7 @@
 `rejected_for_promotion`
 
 Wider stops improved realized returns and reduced stop-loss rates, but the
-setup evaluator still underperformed `SPY` and equal-weight universe exposure
+[setup evaluator](../../stages/OPERATIONS.md#setup-evaluators) still underperformed `SPY` and equal-weight universe exposure
 on the train/dev period. This suggests the current stop model was too tight,
 but stop width alone is not enough to make the current setup/status rules
 promotable.
@@ -16,9 +16,9 @@ promotable.
 
 ## Component Under Test
 
-- Setup evaluator: [`lower-risk-swing-entry`](../../setup-evaluators/lower-risk-swing-entry.md)
+- Setup evaluator: [`lower-risk-swing-entry`](../../stages/setup-evaluators/lower-risk-swing-entry.md)
 - Backtest spec: [`setup-signal-backtest`](../../backtests/components/setup-evaluators/setup-signal-backtest.md)
-- Evaluation plan: [`lower-risk-swing-entry-iteration-plan`](../../evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
+- [Evaluation plan](../../stages/OPERATIONS.md#evaluation-plans): [`lower-risk-swing-entry-iteration-plan`](../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 - Baseline: [`lower-risk-swing-entry-baseline-current-stop`](lower-risk-swing-entry-baseline-current-stop.md)
 
 ## Evaluation Window
@@ -32,7 +32,7 @@ promotable.
 | Horizons | `20`, `40`, `60`, `90`, `120` |
 | Benchmark | `SPY` |
 | Secondary baseline | Equal-weight evaluated universe exposure |
-| Universe | [`random-20-non-curated-1`](../../universes/random-20-non-curated-1.md) |
+| Historical universe | Removed random-20 fixture; exact tickers remain in the recorded artifact run configurations. |
 | Evidence score gate | `70` |
 | Setup score thresholds | `70`, `80` |
 

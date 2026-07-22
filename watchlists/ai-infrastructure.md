@@ -34,7 +34,7 @@ MU, WDC, STX, SNDK
 
 ## AI Networking / Interconnects
 
-ANET, CRDO, ALAB, AVGO, APH, TEL, GLW, CIEN, LITE, COHR, FN
+ANET, CRDO, ALAB, AVGO, APH, TEL, GLW, CIEN, LITE, COHR, FN, CLS
 
 ## AI Data Center Operators / REITs
 

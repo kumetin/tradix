@@ -1,10 +1,10 @@
 # Component Test: IBKR Cash T+1
 
-Component: [IBKR Cash T+1](../../execution-models/ibkr-cash-t-plus-one.md)
+Component: [IBKR Cash T+1](../../stages/execution-models/ibkr-cash-t-plus-one.md)
 
 ## Purpose
 
-Verify that a cash-style execution model does not reuse unsettled sale proceeds
+Verify that a cash-style [execution model](../../stages/OPERATIONS.md#execution-and-execution-models) does not reuse unsettled sale proceeds
 and correctly delays replacement buys until settlement.
 
 ## Fixtures

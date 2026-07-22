@@ -14,11 +14,11 @@ python3 tests/validation/validate_static_profiles.py
 | Check | Expected |
 | --- | --- |
 | Universe has tickers | At least one ticker is listed. |
-| Fallback ticker is present | `fallback_ticker` must be in the universe ticker list. |
+| Optional legacy fallback is valid | When present, it must be in the ticker list; new fallbacks belong to [selection](../../stages/OPERATIONS.md#selection-and-selection-models)-model instances. |
 | Duplicate tickers | No duplicate ticker entries. |
-| Local data availability | Required tickers exist in the local price dataset for the evaluation window or are explicitly marked unavailable. |
+| Local data availability | Required tickers exist in the local price dataset for the [evaluation](../../stages/OPERATIONS.md#evaluation-plans) window or are explicitly marked unavailable. |
 
-## Funding
+## [Funding](../../stages/OPERATIONS.md#funding-profiles)
 
 | Check | Expected |
 | --- | --- |
@@ -26,19 +26,19 @@ python3 tests/validation/validate_static_profiles.py
 | Recurring contribution | Non-negative. |
 | Initial-only profile | Monthly contribution is `$0`. |
 
-## Triggers
+## [Triggers](../../stages/OPERATIONS.md#trigger)
 
 | Check | Expected |
 | --- | --- |
 | Trigger frequency | Recognized value such as monthly, weekly, quarterly, or explicit dates. |
 | Signal cutoff | Trigger defines when signal data is allowed to be known. |
 
-## Strategy Flows
+## [Strategy Pipeline](../../strategies/README.md#canonical-strategy-decision-pipeline)
 
-| Check | Expected |
-| --- | --- |
-| Referenced files exist | Linked strategy, component, data-note, and evaluation files resolve. |
-| Required stages declared | Flow includes trigger, universe, selection model, portfolio policy, execution model, funding profile, and evaluation window stages. |
+The canonical, run-mode-independent operation order is documented once in
+[the strategy concepts guide](../../strategies/README.md). Individual strategy
+files describe only strategy-owned rules and pipeline placement; backtests bind
+concrete profiles.
 
 ## Evaluations
 
@@ -54,7 +54,7 @@ python3 tests/validation/validate_static_profiles.py
 
 | Check | Expected |
 | --- | --- |
-| Referenced files exist | Strategy, universe, selection model, trigger, funding, portfolio policy, execution model, and evaluation links resolve. |
+| Referenced files exist | Strategy, universe, selection model, trigger, funding, [portfolio policy](../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies), [execution model](../../stages/OPERATIONS.md#execution-and-execution-models), and evaluation links resolve. |
 | Compatible selection/policy | Single-position policies receive one target; multi-position policies receive weighted targets. |
 | Compatible execution/policy | Policies that depend on settled cash use an execution model that defines settlement behavior. |
 | Benchmarks declared | Results should be compared to `SPY` and, when possible, an equal-weight universe benchmark. |
@@ -63,8 +63,8 @@ python3 tests/validation/validate_static_profiles.py
 
 | Check | Expected |
 | --- | --- |
-| Referenced files exist | Component under test, fixed harness profiles, evaluation profiles, and baseline links resolve. |
+| Referenced files exist | Component under test, evaluation profiles, and baseline links resolve. |
 | Component under test declared | The spec names one component type and links one primary component profile. |
-| Fixed harness declared | The surrounding strategy, trigger, universe, portfolio policy, execution model, and funding profile are explicit. |
+| Direct contract declared | Fixture inputs and outputs attributable to the component are explicit. |
 | Evaluation and metrics declared | Evaluation matrix and metrics sections are present. |
 | Output location declared | Generated artifacts are written under `artifacts/stock/backtests/components/`. |

@@ -15,9 +15,9 @@ iterations can be compared against it.
 
 ## Component Under Test
 
-- Setup evaluator: [`lower-risk-swing-entry`](../../setup-evaluators/lower-risk-swing-entry.md)
+- [Setup evaluator](../../stages/OPERATIONS.md#setup-evaluators): [`lower-risk-swing-entry`](../../stages/setup-evaluators/lower-risk-swing-entry.md)
 - Backtest spec: [`setup-signal-backtest`](../../backtests/components/setup-evaluators/setup-signal-backtest.md)
-- Evaluation plan: [`lower-risk-swing-entry-iteration-plan`](../../evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
+- [Evaluation plan](../../stages/OPERATIONS.md#evaluation-plans): [`lower-risk-swing-entry-iteration-plan`](../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 
 ## Evaluation Window
 
@@ -34,10 +34,12 @@ iterations can be compared against it.
 ## Universe
 
 Smoke used the first five names from
-[`random-20-non-curated-1`](../../universes/random-20-non-curated-1.md).
+the removed random-20 fixture; exact tickers remain in the recorded artifact
+run configurations.
 
 Fast sweep used all 20 names from
-[`random-20-non-curated-1`](../../universes/random-20-non-curated-1.md).
+the removed random-20 fixture; exact tickers remain in the recorded artifact
+run configurations.
 
 ## Artifact Runs
 

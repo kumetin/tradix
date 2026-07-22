@@ -85,70 +85,93 @@ stdout, or another scratch location for analysis. After adding or updating local
 daily price data, regenerate the daily feature files before relying on moving
 averages, returns, rolling highs, drawdowns, or volume-derived features.
 
-## Strategy, Backtest, and Evaluation Layout
+## Strategy, Backtest, and [Evaluation](stages/OPERATIONS.md#evaluation-plans) Layout
 
-Reusable strategy definitions live under `strategies/`. A strategy file should
-describe trading rules, portfolio behavior, data requirements, and strategy
-parameters. Do not treat data windows such as `start_date` and `end_date` as
-strategy parameters.
+[Reusable strategy definitions](strategies/README.md) live under `strategies/`.
+A strategy file must
+state a falsifiable market thesis, proposed mechanism, point-in-time observable
+proxies, prediction horizon, required component behavior, thesis-preserving
+variations, thesis-changing substitutions, and falsification criteria. A valid
+pipeline or arbitrary component combination is not by itself a strategy. Do
+not treat data windows such as `start_date` and `end_date` as strategy
+parameters.
 
-Strategy flow files under `strategies/` define the canonical ordered pipeline
-for a strategy. Backtests, paper-trading runners, and future live bots should
-consume the strategy flow and supply run-mode-specific configuration around it.
+The [canonical strategy decision pipeline](strategies/README.md#canonical-strategy-decision-pipeline) is
+shared by backtests, paper-trading runners, and future live bots. Individual
+strategy files describe strategy-owned rules and their pipeline placement.
+Concrete stage and run profiles belong to each configured runner or backtest;
+do not create per-strategy `.flow.md` files that duplicate the canonical
+pipeline.
 
 All backtest specifications live under `backtests/`.
 
 Configured strategy backtests live under `backtests/strategies/`. A strategy
 backtest file should select a strategy, reference a concrete universe profile,
 set strategy parameters, and explain the edge or hypothesis being tested. Keep
-trigger, fallback selection, funding, portfolio-policy, execution, accounting,
+[trigger](stages/OPERATIONS.md#trigger), fallback [selection](stages/OPERATIONS.md#selection-and-selection-models), [funding](stages/OPERATIONS.md#funding-profiles), portfolio-policy, [execution](stages/OPERATIONS.md#execution-and-execution-models), accounting,
 and evaluation settings in separate sections instead of labeling all of them as
 strategy parameters.
 
 Component-level backtests live under `backtests/components/`. Use this layer
-when testing one reusable component profile, such as a setup evaluator or
-selection model, under a fixed harness before composing it into a complete
-strategy backtest.
+when testing one reusable component profile, such as a [setup evaluator](stages/OPERATIONS.md#setup-evaluators) or
+selection model, through its direct input/output contract. A reusable component
+must be benchmarkable against itself, a baseline, or another implementation
+without running a complete strategy. If a comparison requires a full strategy
+harness, it belongs under `backtests/strategies/` as a strategy configuration
+comparison.
 
-Strategy flows should compose components in this conceptual order:
+Strategy flows should distinguish configuration and services from reusable
+performance components:
 
 ```text
-strategy
--> trigger
--> universe
+configuration: trigger, static universe, market data
 -> selection model
--> entry rule
+-> entry model or strategy-owned entry rule
 -> portfolio policy
 -> execution model
--> funding profile
--> evaluation window
+run configuration: funding, evaluation plan, benchmarks
 ```
 
-Reusable generic inputs should live in their own component directories:
-`universes/`, `selection-models/`, `triggers/`, `funding-profiles/`,
-`portfolio-policies/`, `execution-models/`, and `evaluations/`. When a backtest
-uses one of those generic profiles, reference the profile file instead of
-duplicating its values inside the backtest.
+Reusable stages and their descriptors live under `stages/`, including
+`stages/selection-models/`, `stages/portfolio-policies/`,
+`stages/execution-models/`, and `stages/setup-evaluators/`. Reusable
+configuration inputs live under `configuration/`, including
+`configuration/universes/`, `configuration/triggers/`,
+`configuration/funding/`, and `configuration/evaluations/`. Reference these files instead of
+duplicating their values inside a backtest.
+
+Before creating or changing a reusable stage descriptor, read
+`stages/DESCRIPTOR-SCHEMA.md`. Every descriptor must define the common fields,
+parameter metadata, and type-specific input/output contract required there.
+
+Triggers, [static universes](stages/OPERATIONS.md#universe-resolution-and-universe-models), funding profiles, evaluation plans, market-data
+providers, and benchmark sets are configuration or infrastructure, not reusable
+performance stages. Correctness or schema validation does not make a type an
+independently benchmarkable component. A dynamic universe qualifies only when
+it has a direct point-in-time membership contract and an independently
+measurable mandate; expected-return ranking remains selection-model behavior.
 
 Selection models should own ticker eligibility, ranking, target count, target
-weights, and fallback behavior. Portfolio policies should own how current
+weights, and fallback behavior. [Portfolio policies](stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies) should own how current
 holdings transition toward the selection intent, including whether to sell,
 accumulate, rotate, or rebalance. Execution models should own fills, settlement,
 fees, slippage, fractional shares, and whether unsettled proceeds can be reused.
 Funding profiles should own capital contributions only.
 
 Evaluation windows and train/validation/test split definitions live under
-`evaluations/`. Use this layer for full-period tests, holdout periods,
+`configuration/evaluations/`. Use this layer for full-period tests, holdout periods,
 walk-forward schedules, rolling windows, and other validation plans.
 
 Generated backtest or evaluation artifacts should live under
 `artifacts/stock/backtests/`, not under `data/`, `strategies/`, `backtests/`,
-or `evaluations/`.
+or `configuration/evaluations/`.
 
 Component test specifications live under `tests/`. Prefer behavioral component
-tests for `selection-models/`, `portfolio-policies/`, and `execution-models/`.
+tests for `stages/selection-models/`, `stages/portfolio-policies/`, and
+`stages/execution-models/`.
 Use static validation checks for mostly declarative profiles such as
-`universes/`, `funding-profiles/`, triggers, evaluations, and backtest link
+`configuration/universes/`, `configuration/funding/`, triggers, evaluations,
+and backtest link
 consistency.
 
 Repository-specific test helper:
@@ -195,7 +218,7 @@ whether watched stocks are worth re-entering:
    inspect the relevant alert files under `alerts/`; if the user does not name
    a specific file, inspect all non-README files in that directory.
 3. When the user asks to `check alerts`, always evaluate trigger conditions
-   against live real-time market data. Use the local daily price and feature
+   against live real-time [market data](stages/OPERATIONS.md#market-data-resolution). Use the local daily price and feature
    datasets only as supporting context for moving averages, volume trends,
    historical returns, and setup quality; do not use stale local daily closes as
    the trigger source when live data is available.
@@ -238,7 +261,7 @@ support/resistance levels, or current market data.
 ## Watchlist Setup Reviews
 
 Stock watchlists live under `watchlists/`. Setup evaluation rubrics live under
-`setup-evaluators/`.
+`stages/setup-evaluators/`.
 
 When the user asks to review a watchlist, rank a watchlist, or evaluate a
 watchlist for stock setups:
@@ -246,9 +269,9 @@ watchlist for stock setups:
 1. Read `watchlists/README.md` first.
 2. Inspect the requested watchlist file. If no file is named and more than one
    watchlist exists, ask which watchlist to review.
-3. Read `setup-evaluators/README.md` and
-   `setup-evaluators/lower-risk-swing-entry.md`.
-4. Use `setup-evaluators/lower-risk-swing-entry.md` for watchlist setup
+3. Read `stages/setup-evaluators/README.md` and
+   `stages/setup-evaluators/lower-risk-swing-entry.md`.
+4. Use `stages/setup-evaluators/lower-risk-swing-entry.md` for watchlist setup
    reviews.
 5. Parse tickers from the watchlist while preserving category/group headings as
    context.
