@@ -241,6 +241,56 @@ def run_isolated_component_backtest(
     evaluator: Optional[str],
     driver_args: Sequence[str],
 ) -> int:
+    if spec.component_type == "selection-model":
+        if spec.path.name == "classic-12-1-price-momentum.md":
+            module = import_module_from_path(
+                SCRIPT_DIR / "classic_12_1_momentum_validation.py",
+                "classic_12_1_momentum_validation",
+            )
+            return module.main(driver_args)
+        if spec.path.name == "continuous-fundamental-momentum-validation.md":
+            module = import_module_from_path(
+                SCRIPT_DIR / "continuous_fundamental_momentum_validation.py",
+                "continuous_fundamental_momentum_validation",
+            )
+            return module.main(driver_args)
+        if spec.path.name == "fundamental-technical-seven-condition-validation.md":
+            module = import_module_from_path(
+                SCRIPT_DIR / "seven_condition_selection_validation.py",
+                "fundamental_technical_seven_condition_validation",
+            )
+            return module.main(driver_args)
+        if spec.path.name == "high-relative-volume-matched-ablation.md":
+            module = import_module_from_path(
+                SCRIPT_DIR / "high_relative_volume_matched_ablation.py",
+                "high_relative_volume_matched_ablation",
+            )
+            return module.main(driver_args)
+        if spec.path.name == "fundamental-technical-condition-count.md":
+            module = import_module_from_path(
+                SCRIPT_DIR / "selection_condition_count_benchmark.py",
+                "fundamental_technical_condition_count_benchmark",
+            )
+            return module.main(driver_args)
+        if spec.path.name != "fundamental-technical-momentum.md":
+            raise BacktestDriverError(
+                f"No isolated driver registered for selection model {spec.path.stem!r}."
+            )
+        module = import_module_from_path(
+            SCRIPT_DIR / "selection_model_forward_outcome_benchmark.py",
+            "fundamental_technical_momentum_selection_model_benchmark",
+        )
+        return module.main(driver_args)
+    if spec.component_type == "portfolio-policy":
+        if spec.path.name != "partial-profit-breakeven-time-exit.md":
+            raise BacktestDriverError(
+                f"No isolated driver registered for portfolio policy {spec.path.stem!r}."
+            )
+        module = import_module_from_path(
+            SCRIPT_DIR / "portfolio_policy_exit_benchmark.py",
+            "partial_profit_breakeven_time_exit_policy_benchmark",
+        )
+        return module.main(driver_args)
     if spec.component_type != "setup-evaluator":
         raise BacktestDriverError(f"No isolated driver registered for component type {spec.component_type!r}.")
     if evaluator != "lower-risk-swing-entry":

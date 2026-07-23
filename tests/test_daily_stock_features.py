@@ -92,6 +92,20 @@ class DailyStockFeaturesTest(unittest.TestCase):
         self.assertEqual("", result[0]["is_institutional_accumalation_rising"])
         self.assertEqual("true", result[1]["is_institutional_accumalation_rising"])
 
+    def test_high_relative_volume_uses_prior_rows_and_requires_up_close(self):
+        rows = price_rows(52)
+        rows[50]["volume"] = "1600"
+        rows[51]["volume"] = "2000"
+        rows[51]["adj_close"] = rows[50]["adj_close"]
+        rows[51]["close"] = rows[50]["close"]
+
+        result = features.feature_rows(rows)
+
+        self.assertEqual("", result[49]["is_high_relative_volume"])
+        self.assertEqual("1.6", result[50]["relative_volume_50"])
+        self.assertEqual("true", result[50]["is_high_relative_volume"])
+        self.assertEqual("false", result[51]["is_high_relative_volume"])
+
 
 if __name__ == "__main__":
     unittest.main()

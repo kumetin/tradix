@@ -32,6 +32,8 @@ from pathlib import Path
 DEFAULT_SMA_WINDOWS = (20, 50, 100, 150, 200)
 DEFAULT_RETURN_WINDOWS = (21, 63, 126, 252)
 DEFAULT_HIGH_WINDOWS = (252,)
+DEFAULT_RELATIVE_VOLUME_WINDOW = 50
+DEFAULT_HIGH_RELATIVE_VOLUME_THRESHOLD = 1.5
 FUNDAMENTAL_FIELDS = (
     "is_eps_growing",
     "is_profit_margins_increasing",
@@ -246,6 +248,8 @@ def feature_rows(
     queues = {window: deque() for window in DEFAULT_SMA_WINDOWS}
     rolling_highs = {window: RollingHigh(window) for window in DEFAULT_HIGH_WINDOWS}
     adj_closes: list[float] = []
+    volumes: deque[float] = deque()
+    volume_sum = 0.0
     output: list[dict[str, str]] = []
     facts = fundamental_rows or []
     visible_facts: list[dict[str, str]] = []
@@ -261,6 +265,7 @@ def feature_rows(
         open_price = as_float(row, "open")
         high = as_float(row, "high")
         low = as_float(row, "low")
+        volume = as_float(row, "volume")
 
         if close is None or adj_close is None:
             continue
@@ -271,6 +276,11 @@ def feature_rows(
         adj_low = low * adj_factor if low is not None else None
 
         adj_closes.append(adj_close)
+        prior_average_volume = (
+            volume_sum / DEFAULT_RELATIVE_VOLUME_WINDOW
+            if len(volumes) == DEFAULT_RELATIVE_VOLUME_WINDOW
+            else None
+        )
         for window in DEFAULT_SMA_WINDOWS:
             queues[window].append(adj_close)
             sums[window] += adj_close
@@ -346,8 +356,28 @@ def feature_rows(
             if stock_return is None or benchmark_return is None
             else stock_return > benchmark_return
         )
+        previous_close = adj_closes[-2] if len(adj_closes) >= 2 else None
+        relative_volume = (
+            volume / prior_average_volume
+            if volume is not None and prior_average_volume not in (None, 0)
+            else None
+        )
+        feature["relative_volume_50"] = fmt(relative_volume)
+        feature["is_high_relative_volume"] = bool_text(
+            None
+            if relative_volume is None or previous_close is None
+            else (
+                adj_close > previous_close
+                and relative_volume >= DEFAULT_HIGH_RELATIVE_VOLUME_THRESHOLD
+            )
+        )
 
         output.append(feature)
+        if volume is not None:
+            volumes.append(volume)
+            volume_sum += volume
+            if len(volumes) > DEFAULT_RELATIVE_VOLUME_WINDOW:
+                volume_sum -= volumes.popleft()
 
     return output
 
@@ -397,6 +427,8 @@ def write_notes(features_dir: Path) -> None:
                 "- is_institutional_accumalation_rising = aggregate net reported institutional share change > 0",
                 "- is_above_moving_average = adjusted close > SMA 200",
                 "- is_relative_strength_high = 252-row return > SPY 252-row return",
+                "- relative_volume_50 = current volume / mean volume of the prior 50 valid rows",
+                "- is_high_relative_volume = up close with relative_volume_50 >= 1.5",
                 "",
                 "Institutional accumulation uses the latest Nasdaq snapshot's aggregate net reported share change.",
                 "Fundamental facts and institutional snapshots are joined only from available_date onward; unavailable evidence stays blank.",

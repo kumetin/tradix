@@ -12,3 +12,6 @@ calendar schedule is one kind of trigger, not the whole abstraction.
 ## Available Triggers
 
 - [Monthly Allocation](monthly-allocation.md)
+- [Weekly Selection](weekly-selection.md), a reusable
+  [trigger](../../stages/OPERATIONS.md#trigger) for scheduled
+  [selection](../../stages/OPERATIONS.md#selection-and-selection-models)

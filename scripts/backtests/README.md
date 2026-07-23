@@ -64,7 +64,16 @@ Required inputs:
 | Direct contract | `Direct Input/Output Contract` section. |
 | Metrics and outputs | `Metrics` and `Output Location` sections. |
 
-The current executable isolated component driver supports [setup evaluators](../../stages/OPERATIONS.md#setup-evaluators) that
+The executable isolated component driver supports the
+[`classic-12-1-momentum`](../../stages/selection-models/classic-12-1-momentum.md)
+historical-membership benchmark, the
+[`fundamental-technical-momentum`](../../stages/selection-models/fundamental-technical-momentum.md)
+selection benchmark, its condition-count and volume diagnostics, the
+seven-condition validation, the
+[`continuous-fundamental-momentum`](../../stages/selection-models/continuous-fundamental-momentum.md)
+validation, the
+[`partial-profit-breakeven-time-exit`](../../stages/portfolio-policies/partial-profit-breakeven-time-exit.md)
+portfolio-policy trade-path benchmark, and [setup evaluators](../../stages/OPERATIONS.md#setup-evaluators) that
 emit normalized `SetupSignal` records. Evaluator-specific adapters live under:
 
 ```text

@@ -13,3 +13,4 @@ Descriptors in this directory follow the
 - [Single Position Profit SMA50 Horizon Exit](single-position-profit-sma50-horizon-exit.md)
 - [Single Position Profit Fixed Stop Horizon Exit](single-position-profit-fixed-stop-horizon-exit.md)
 - [Single Position Rotation](single-position-rotation.md)
+- [Partial Profit Breakeven Time Exit](partial-profit-breakeven-time-exit.md)

@@ -156,3 +156,57 @@ Nasdaq's aggregate may contain managers with different latest report dates.
 `net_reported_shares_change` is the sum of the holder-level changes in the
 complete response. It is a reported-position accumulation signal, not a claim
 about beneficial ownership, short interest, or current intraday holdings.
+
+Historical point-in-time snapshots for configured research universes can be
+derived from the SEC's quarterly flattened Form 13F datasets:
+
+```sh
+python3 scripts/market-data-fetchers/fill_historical_stock_institutional_holdings.py
+```
+
+The historical filler replays filings by actual SEC filing date, aggregates
+manager positions per security, and records the sum of each manager's latest
+quarter-over-quarter reported share change. Security matching is restricted to
+declared issuer aliases; unmatched or ambiguous issuers are reported rather
+than guessed.
+
+## Historical S&P 500 Membership
+
+Fetch the pinned and checksummed historical constituent tape with:
+
+```sh
+python3 scripts/market-data-fetchers/fetch_historical_sp500_membership.py
+```
+
+The result is persisted at
+`data/stock/universes/sp500-historical-membership.csv`. See the adjacent
+`data/stock/universes/.notes` for provenance, symbol normalization, and the
+requirement to report incomplete historical-price coverage separately from
+membership coverage.
+
+Attempt recovery of missing 2015–2022 daily prices for historical members with:
+
+```sh
+python3 scripts/market-data-fetchers/fill_historical_sp500_prices.py
+```
+
+The filler persists only provider histories overlapping each ticker's dated
+membership interval and writes an explicit resolved/unresolved report beside
+the membership tape.
+
+For symbols no longer served by Yahoo, import the public FNSPID archive after
+downloading `Stock_price/full_history.zip`:
+
+```sh
+python3 scripts/market-data-fetchers/import_fnspid_historical_sp500_prices.py \
+  /path/to/full_history.zip
+```
+
+Only unresolved symbols and the repository's required 2014–2022 range are
+persisted; the bulk archive remains external temporary data.
+
+Remove invalid imported OHLCV rows without filling gaps:
+
+```sh
+python3 scripts/market-data-fetchers/clean_historical_sp500_price_rows.py
+```

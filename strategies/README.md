@@ -67,6 +67,7 @@ hypotheses, run registries, findings, and decisions live under
 
 ## Available Strategies
 
+- [Classic 12-1 Momentum Rotation](classic-12-1-momentum-rotation.md)
 - [Momentum Rotation](momentum-rotation.md)
 - [Technical Resistance Runner](technical-resistance-runner.md)
 - [Regime-Gated Technical Resistance](regime-gated-technical-resistance.md)

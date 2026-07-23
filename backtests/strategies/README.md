@@ -26,6 +26,10 @@ Required scenario sections are:
 - benchmarks and metrics;
 - output location.
 
+## Classic 12-1 Momentum Rotation
+
+- [TC-001: Point-in-Time S&P 500 Top-10 Monthly Rotation](classic-12-1-momentum-rotation/tc-001-point-in-time-sp500-top-10.md) tests whether the frozen classic 12–1 selector produces a profitable diversified portfolio after monthly rotation and settlement drag.
+
 ## Momentum Rotation
 
 - [TC-001: Point-in-Time S&P 500 New-Money Allocation](momentum-rotation/tc-001-point-in-time-sp500.md) tests concentrated monthly allocation within point-in-time S&P 500 membership.

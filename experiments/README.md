@@ -107,3 +107,7 @@ directory contains experiment metadata and indexes, never copied result files.
 - [Lower-Risk Swing Entry Baseline: Current Stop](setup-evaluators/lower-risk-swing-entry-baseline-current-stop.md)
 - [Lower-Risk Swing Entry Stop-Model Sweep](setup-evaluators/lower-risk-swing-entry-stop-model-sweep.md)
 - [Lower-Risk Swing Entry Buy-Limit Sweep](setup-evaluators/lower-risk-swing-entry-buy-limit-sweep.md)
+
+## Strategy Experiments
+
+- [Classic 12-1 Momentum Rotation Profitability](strategies/classic-12-1-momentum-rotation-profitability.md)

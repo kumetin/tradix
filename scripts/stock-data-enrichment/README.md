@@ -39,5 +39,9 @@ latest reported quarter with its closest comparable year-ago quarter; missing
 evidence produces a blank value. Institutional accumulation comes from dated
 snapshots in `data/stock/institutions/quarterly/` and is true when the aggregate
 reported institutional share change is positive.
+The technical output also includes 50-row relative volume. High relative
+volume is true only when the adjusted close rises from the previous valid row
+and current volume is at least 1.5 times the mean of the prior 50 valid rows;
+the current row is excluded from that average.
 Rows without both `close` and `adj_close` are skipped rather than
 forward-filled. The script also regenerates the feature dataset `.notes` file.

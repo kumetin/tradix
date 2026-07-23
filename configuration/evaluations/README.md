@@ -21,6 +21,7 @@ should live under `artifacts/stock/backtests/`.
 
 ## Available Evaluations
 
+- [Classic 12-1 Momentum Rotation TC-001 Post-Validation Confirmation](classic-12-1-momentum-rotation/tc-001-post-validation-confirmation.md)
 - [Momentum Rotation TC-001 Full Period](momentum-rotation/tc-001-full-period.md)
 - [Momentum Rotation TC-002 Full Period](momentum-rotation/tc-002-full-period.md)
 - [Momentum Rotation TC-003 Full Period](momentum-rotation/tc-003-full-period.md)
