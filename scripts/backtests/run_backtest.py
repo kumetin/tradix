@@ -138,6 +138,44 @@ def validate_spec(spec: BacktestSpec) -> None:
 def run_strategy_backtest(spec: BacktestSpec, driver_args: Sequence[str]) -> int:
     relative = spec.path.relative_to(ROOT)
     if relative == Path(
+        "backtests/strategies/classic-12-1-momentum-rotation/"
+        "tc-001-point-in-time-sp500-top-10.md"
+    ):
+        module = import_module_from_path(
+            SCRIPT_DIR / "strategies/classic_12_1_momentum_rotation.py",
+            "classic_12_1_momentum_rotation_strategy_backtest",
+        )
+        return module.main(driver_args)
+    if relative == Path(
+        "backtests/strategies/regime-gated-classic-12-1-momentum/"
+        "tc-001-point-in-time-sp500-top-10.md"
+    ):
+        module = import_module_from_path(
+            SCRIPT_DIR / "strategies/classic_12_1_momentum_rotation.py",
+            "regime_gated_classic_12_1_momentum_strategy_backtest",
+        )
+        return module.main(["--market-sma-window", "200"] + list(driver_args))
+    if relative == Path(
+        "backtests/strategies/classic-12-1-momentum-rotation/"
+        "tc-002-point-in-time-sp500-2015-2020-replication.md"
+    ):
+        module = import_module_from_path(
+            SCRIPT_DIR / "strategies/classic_12_1_momentum_rotation.py",
+            "classic_12_1_momentum_rotation_temporal_replication",
+        )
+        defaults = [
+            "--warmup-start", "2014-01-02",
+            "--evaluation-start", "2015-01-02",
+            "--evaluation-end", "2020-12-31",
+            "--output-root",
+            str(
+                ROOT
+                / "artifacts/stock/backtests/strategies/"
+                "classic-12-1-momentum-rotation/tc-002"
+            ),
+        ]
+        return module.main(defaults + list(driver_args))
+    if relative == Path(
         "backtests/strategies/technical-resistance-runner/"
         "tc-001-random-50-universe-1-monthly.md"
     ):

@@ -129,6 +129,7 @@ fills and settlement belong to execution.
 ## Backtests
 
 - [TC-001: Point-in-Time S&P 500 Top-10 Monthly Rotation](../backtests/strategies/classic-12-1-momentum-rotation/tc-001-point-in-time-sp500-top-10.md)
+- [TC-002: 2015-2020 Temporal Replication](../backtests/strategies/classic-12-1-momentum-rotation/tc-002-point-in-time-sp500-2015-2020-replication.md)
 
 ## Data Requirements
 
