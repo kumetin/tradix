@@ -17,6 +17,7 @@ FEATURES = ROOT / "data/stock/features/daily"
 OUTPUT = ROOT / "artifacts/stock/bookmarks"
 TIPRANKS_SUMMARY = ROOT / "data/stock/tipranks-analysts-summary"
 TIPRANKS_ACTIVITY = ROOT / "data/stock/tipranks-analysts-activity"
+ETF_TIPRANKS_SUMMARY = ROOT / "data/etf/tipranks-analysts-summary"
 CALCULATION_DATE = date.today().isoformat()
 PE_FILE = ROOT / "data/stock/pe-valuation-summary/{}.csv".format(date.today().year)
 
@@ -99,11 +100,24 @@ def watchlist(path):
 
 
 def latest_tipranks(ticker):
-    path = TIPRANKS_SUMMARY / "{}.csv".format(ticker)
     result = {"upside": None, "count": None}
-    if path.exists():
-        with path.open(newline="") as handle:
-            rows = [row for row in csv.DictReader(handle) if row.get("scrape_date", "") <= CALCULATION_DATE]
+    etf_path = ETF_TIPRANKS_SUMMARY / "{}.csv".format(ticker)
+    stock_path = TIPRANKS_SUMMARY / "{}.csv".format(ticker)
+    if etf_path.exists():
+        with etf_path.open(newline="") as handle:
+            rows = [
+                row for row in csv.DictReader(handle)
+                if row.get("date", "") <= CALCULATION_DATE
+            ]
+        if rows:
+            row = sorted(rows, key=lambda item: item["date"])[-1]
+            result["upside"] = number(row.get("average_forecast_upside_90d"))
+    elif stock_path.exists():
+        with stock_path.open(newline="") as handle:
+            rows = [
+                row for row in csv.DictReader(handle)
+                if row.get("scrape_date", "") <= CALCULATION_DATE
+            ]
         if rows:
             row = sorted(rows, key=lambda item: item["scrape_date"])[-1]
             result["upside"] = number(row.get("average_forecast_upside_90d"))
