@@ -38,6 +38,18 @@ calendar year, and atomically rewritten. For class tickers, the provider symbol
 recorded in existing canonical rows is reused while the repository filename is
 preserved.
 
+Audit daily coverage without treating pre-listing history or foreign-exchange
+holidays as missing SPY sessions:
+
+```sh
+python3 scripts/market-data-fetchers/audit_daily_stock_prices.py
+```
+
+Use `--output data/stock/prices/daily/.integrity.md` to persist the report. The
+audit compares only symbols whose `exchange_timezone` matches the reference
+symbol and only between each symbol's first and last valid rows. Other exchange
+calendars are reported as unsupported rather than guessed.
+
 Programmatic usage:
 
 ```python
