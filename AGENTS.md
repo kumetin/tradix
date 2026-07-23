@@ -106,8 +106,10 @@ pipeline.
 All backtest specifications live under `backtests/`.
 
 Configured strategy backtests live under `backtests/strategies/`. A strategy
-backtest file should select a strategy, reference a concrete universe profile,
-set strategy parameters, and explain the edge or hypothesis being tested. Keep
+backtest file should select a strategy thesis, bind the concrete stages and
+configuration required to run it, set genuine strategy parameters, and state
+the thesis prediction or robustness dimension being tested. It should also say
+what varies and what remains controlled. Keep
 [trigger](stages/OPERATIONS.md#trigger), fallback [selection](stages/OPERATIONS.md#selection-and-selection-models), [funding](stages/OPERATIONS.md#funding-profiles), portfolio-policy, [execution](stages/OPERATIONS.md#execution-and-execution-models), accounting,
 and evaluation settings in separate sections instead of labeling all of them as
 strategy parameters.
@@ -120,8 +122,8 @@ without running a complete strategy. If a comparison requires a full strategy
 harness, it belongs under `backtests/strategies/` as a strategy configuration
 comparison.
 
-Strategy flows should distinguish configuration and services from reusable
-performance components:
+The [canonical strategy decision pipeline](strategies/README.md#canonical-strategy-decision-pipeline)
+distinguishes configuration and services from reusable performance components:
 
 ```text
 configuration: trigger, static universe, market data

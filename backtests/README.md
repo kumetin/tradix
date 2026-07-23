@@ -9,11 +9,13 @@ This directory contains all backtest specifications.
   expose a direct contract that can be compared without a complete strategy.
 
 [Reusable strategy definitions](../strategies/README.md) live under
-`strategies/`. Independently
-benchmarkable components and their descriptors live together under `stages/`.
-Static
-universes, [triggers](../stages/OPERATIONS.md#trigger), [funding profiles](../stages/OPERATIONS.md#funding-profiles), and evaluations are configuration inputs,
-not performance components. Generated backtest artifacts should live under
+`strategies/`. Independently benchmarkable components and their descriptors
+live together under `stages/`.
+[Static universes](../stages/OPERATIONS.md#universe-resolution-and-universe-models),
+[triggers](../stages/OPERATIONS.md#trigger),
+[funding profiles](../stages/OPERATIONS.md#funding-profiles), and evaluations
+live under [`configuration/`](../configuration/README.md); they are inputs, not
+performance components. Generated backtest artifacts should live under
 `artifacts/stock/backtests/`.
 
 Run backtests through the root driver:

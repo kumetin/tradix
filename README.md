@@ -172,10 +172,13 @@ Full strategy experiments live under:
 backtests/strategies/<strategy-id>/<test-id>.md
 ```
 
-A specification links a strategy and concrete universe, selection, entry,
-portfolio, execution, trigger, funding, and evaluation bindings as applicable.
-It states the thesis claim or robustness dimension being tested and declares
-benchmarks.
+A strategy backtest specification selects a strategy thesis and supplies the
+concrete stage and configuration bindings required to execute it. These may
+include a trigger, universe configuration or universe model, market-data
+provider, selection model, entry model or strategy-owned entry rule, portfolio
+policy, execution model, funding profile, evaluation plan, and benchmarks. The
+specification states which thesis prediction or robustness dimension is being
+tested, what varies, and what remains controlled.
 
 Independent component benchmarks live under:
 

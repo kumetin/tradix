@@ -18,7 +18,7 @@ validation checks rather than full behavioral tests.
 | --- | --- |
 | Component behavior | Verify that a component satisfies its contract in isolation. |
 | Component backtest | Compare one component's direct outputs using a fixed input fixture. |
-| Integration backtest | Verify that a configured backtest works end to end. |
+| Strategy backtest | Verify that a configured strategy works end to end. |
 | Static validation | Verify that profile files are internally consistent. |
 
 ## Scoring
@@ -56,6 +56,8 @@ The executable suites currently cover:
   visualizations, and run hashing
 - stock-price provider normalization into the canonical CSV schema
 - canonical inventory fast-path checks and missing-row detection
+- daily-price integrity audit boundaries, exchange-calendar handling, and
+  invalid-row detection
 
 From the repository root, run static profile validation:
 

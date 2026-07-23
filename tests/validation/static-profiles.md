@@ -1,7 +1,7 @@
 # Validation: Static Profiles
 
-Static profile validation checks configuration consistency for component files
-that mostly contain data rather than behavior.
+Static profile validation checks declarative configuration profiles and link
+consistency across configured backtest specifications.
 
 Executable check:
 
@@ -9,12 +9,12 @@ Executable check:
 python3 tests/validation/validate_static_profiles.py
 ```
 
-## Universes
+## [Universes](../../stages/OPERATIONS.md#universe-resolution-and-universe-models)
 
 | Check | Expected |
 | --- | --- |
-| Universe has tickers | At least one ticker is listed. |
-| Optional legacy fallback is valid | When present, it must be in the ticker list; new fallbacks belong to [selection](../../stages/OPERATIONS.md#selection-and-selection-models)-model instances. |
+| Registered static universe has tickers | At least one ticker is listed. |
+| Legacy fallback compatibility | If an older profile contains a fallback, it must be in the ticker list; new fallbacks belong to [selection](../../stages/OPERATIONS.md#selection-and-selection-models)-model instances. |
 | Duplicate tickers | No duplicate ticker entries. |
 | Local data availability | Required tickers exist in the local price dataset for the [evaluation](../../stages/OPERATIONS.md#evaluation-plans) window or are explicitly marked unavailable. |
 
@@ -54,7 +54,7 @@ concrete profiles.
 
 | Check | Expected |
 | --- | --- |
-| Referenced files exist | Strategy, universe, selection model, trigger, funding, [portfolio policy](../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies), [execution model](../../stages/OPERATIONS.md#execution-and-execution-models), and evaluation links resolve. |
+| Referenced files exist | Strategy, stage, and configuration bindings—including universe, selection, trigger, funding, [portfolio policy](../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies), [execution model](../../stages/OPERATIONS.md#execution-and-execution-models), and evaluation references when applicable—resolve. |
 | Compatible selection/policy | Single-position policies receive one target; multi-position policies receive weighted targets. |
 | Compatible execution/policy | Policies that depend on settled cash use an execution model that defines settlement behavior. |
 | Benchmarks declared | Results should be compared to `SPY` and, when possible, an equal-weight universe benchmark. |

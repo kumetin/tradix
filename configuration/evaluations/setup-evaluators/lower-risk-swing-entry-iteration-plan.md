@@ -110,7 +110,8 @@ configuration.
 
 ## Stop-Model Iteration Grid
 
-Use the same 20-stock non-curated universe and train/dev period.
+Use the frozen 20-ticker historical fixture recorded in the baseline artifacts
+and the same train/dev period.
 
 | Run group | Universe | Period | Cadence | Horizons | Setup score thresholds | Evidence score gate | Stop models |
 | --- | --- | --- | --- | --- | --- | --- | --- |

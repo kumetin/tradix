@@ -22,5 +22,5 @@ selection belongs to the configured selection model.
 
 ## Available Static Universes
 
-None. The former curated high-beta and random-20 fixtures were removed in favor
-of query-defined universe models under `stages/universe-models/`.
+None currently registered. Query-defined dynamic universes live under
+[`stages/universe-models/`](../../stages/universe-models/README.md).

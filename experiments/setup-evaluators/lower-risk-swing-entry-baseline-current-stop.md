@@ -103,8 +103,9 @@ Use this experiment as the baseline for the next train/dev iteration.
 
 ## Next Experiment
 
-Keep the same train/dev period and 20-stock non-curated universe, but introduce
-explicit stop-model variants before moving to validation.
+Keep the same train/dev period and frozen 20-ticker historical fixture recorded
+in the artifact run configurations, but introduce explicit stop-model variants
+before moving to validation.
 
 Recommended next grid:
 

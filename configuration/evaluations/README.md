@@ -3,8 +3,9 @@
 This directory describes how configured backtests are evaluated across
 historical data windows.
 
-[Evaluation plans](../../stages/OPERATIONS.md#evaluation-plans) are experiment configuration, not executable strategy stages
-or independently benchmarkable components.
+[Evaluation plans](../../stages/OPERATIONS.md#evaluation-plans) are experiment
+configuration, not executable strategy stages or independently benchmarkable
+components.
 
 Evaluation definitions own:
 
@@ -14,9 +15,9 @@ Evaluation definitions own:
 - walk-forward or rolling-window schedules
 - final out-of-sample periods
 
-Strategy rules live under `strategies/`. Configured strategy instances live
-under `backtests/`. Generated evaluation artifacts should live under
-`artifacts/stock/backtests/`.
+Strategy theses and rules live under `strategies/`. Configured strategy
+backtest specifications live under `backtests/`. Generated evaluation artifacts
+should live under `artifacts/stock/backtests/`.
 
 ## Available Evaluations
 

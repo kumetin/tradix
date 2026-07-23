@@ -103,7 +103,8 @@ it as only one part of the fix.
 
 ## Next Experiment
 
-Keep the same train/dev period and 20-stock non-curated universe.
+Keep the same train/dev period and frozen 20-ticker historical fixture recorded
+in the artifact run configurations.
 
 Recommended next grid:
 

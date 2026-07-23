@@ -21,8 +21,9 @@ A fixed point-in-time dataset, candidate set, order tape, target-intent tape, or
 account-state tape may be supplied as a fixture. Supplying a
 [strategy pipeline](../../strategies/README.md#canonical-strategy-decision-pipeline)
 as the test harness is not independent benchmarking. If a proposed component
-can only be judged by changing it inside a complete strategy, it is strategy
-configuration and its comparison belongs under `backtests/strategies/`.
+can only be judged by changing it inside a complete strategy, it is not
+independently benchmarkable through this layer. Compare it as a strategy-owned
+rule or concrete binding under `backtests/strategies/`.
 
 All component backtests are therefore `isolated component backtest` specs. The
 former `harnessed component backtest` category is intentionally unsupported.

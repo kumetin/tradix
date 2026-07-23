@@ -1,0 +1,441 @@
+// This work is licensed under an Attribution-NonCommercial-ShareAlike 4.0
+//@version=6
+
+indicator(
+     "Analyst Price Target",
+     shorttitle = "Analyst Targets:",
+     overlay = true
+)
+
+//──────────────────────────────────────────────────────────────────────────────
+// Display settings
+//──────────────────────────────────────────────────────────────────────────────
+
+// Pine cannot automatically detect other visible indicators.
+// Increase this setting to move the table farther down from the top-left corner.
+verticalOffset = input.int(
+     defval = 8,
+     title = "Distance from top (%)",
+     minval = 0,
+     maxval = 40,
+     step = 1,
+     tooltip = "Increase this value until the table appears below your other indicator titles."
+)
+
+// Compact text size.
+// Small is approximately 40% smaller than the previous large setting.
+tableFontSize = input.string(
+     defval = size.large,
+     title = "Table font size",
+     options = [
+         size.tiny,
+         size.small,
+         size.normal,
+         size.large,
+         size.huge
+     ]
+)
+
+//──────────────────────────────────────────────────────────────────────────────
+// Colors
+//──────────────────────────────────────────────────────────────────────────────
+
+panelBackground = color.new(color.black, 15)
+headerBackground = color.new(color.rgb(23, 108, 255), 55)
+
+maximumColor = color.rgb(8, 200, 160)
+averageColor = color.rgb(70, 150, 255)
+minimumColor = color.rgb(255, 90, 100)
+
+strongBuyColor = color.lime
+buyColor = color.rgb(0, 190, 90)
+holdColor = color.orange
+sellColor = color.red
+strongSellColor = color.rgb(220, 80, 100)
+
+//──────────────────────────────────────────────────────────────────────────────
+// Robust data capture
+//──────────────────────────────────────────────────────────────────────────────
+
+var float tgt_max = na
+var float tgt_avg = na
+var float tgt_min = na
+
+var float rec_sb = na
+var float rec_b  = na
+var float rec_h  = na
+var float rec_s  = na
+var float rec_ss = na
+
+if not na(syminfo.target_price_high)
+    tgt_max := syminfo.target_price_high
+
+if not na(syminfo.target_price_average)
+    tgt_avg := syminfo.target_price_average
+
+if not na(syminfo.target_price_low)
+    tgt_min := syminfo.target_price_low
+
+if not na(syminfo.recommendations_buy_strong)
+    rec_sb := syminfo.recommendations_buy_strong
+
+if not na(syminfo.recommendations_buy)
+    rec_b := syminfo.recommendations_buy
+
+if not na(syminfo.recommendations_hold)
+    rec_h := syminfo.recommendations_hold
+
+if not na(syminfo.recommendations_sell)
+    rec_s := syminfo.recommendations_sell
+
+if not na(syminfo.recommendations_sell_strong)
+    rec_ss := syminfo.recommendations_sell_strong
+
+//──────────────────────────────────────────────────────────────────────────────
+// Formatting functions
+//──────────────────────────────────────────────────────────────────────────────
+
+formatTarget(float target) =>
+    if na(target)
+        "N/A"
+    else
+        float upsidePct = (target / close - 1.0) * 100.0
+        string sign = upsidePct > 0 ? "+" : ""
+
+        str.tostring(target, format.mintick) +
+         " [" +
+         sign +
+         str.tostring(upsidePct, "#.##") +
+         "%]"
+
+formatCount(float recommendationCount) =>
+    if na(recommendationCount)
+        "N/A"
+    else
+        str.tostring(recommendationCount, "#")
+
+//──────────────────────────────────────────────────────────────────────────────
+// Table
+//
+// Row 0: invisible vertical spacer
+// Row 1: price-target header
+// Rows 2–4: price targets
+// Row 5: recommendation header
+// Rows 6–10: recommendation counts
+//──────────────────────────────────────────────────────────────────────────────
+
+var table analystTable = table.new(
+     position = position.top_left,
+     columns = 2,
+     rows = 11,
+     bgcolor = na,
+     frame_width = 0,
+     border_width = 0
+)
+
+// Merge the two header rows across both columns.
+if barstate.isfirst
+    table.merge_cells(
+         analystTable,
+         0,
+         1,
+         1,
+         1
+    )
+
+    table.merge_cells(
+         analystTable,
+         0,
+         5,
+         1,
+         5
+    )
+
+if barstate.islast
+    //──────────────────────────────────────────────────────────────────────────
+    // Invisible top spacer
+    //──────────────────────────────────────────────────────────────────────────
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 0,
+         text = "",
+         height = verticalOffset,
+         bgcolor = na
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 0,
+         text = "",
+         height = verticalOffset,
+         bgcolor = na
+    )
+
+    //──────────────────────────────────────────────────────────────────────────
+    // Price targets
+    //──────────────────────────────────────────────────────────────────────────
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 1,
+         text = "ANALYST PRICE TARGETS",
+         text_color = color.white,
+         bgcolor = headerBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_center
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 2,
+         text = "Maximum",
+         text_color = color.white,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 2,
+         text = formatTarget(tgt_max),
+         text_color = maximumColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 3,
+         text = "Average",
+         text_color = color.white,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 3,
+         text = formatTarget(tgt_avg),
+         text_color = averageColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 4,
+         text = "Minimum",
+         text_color = color.white,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 4,
+         text = formatTarget(tgt_min),
+         text_color = minimumColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+    //──────────────────────────────────────────────────────────────────────────
+    // Analyst recommendations
+    //──────────────────────────────────────────────────────────────────────────
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 5,
+         text = "ANALYST RECOMMENDATIONS",
+         text_color = color.white,
+         bgcolor = headerBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_center
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 6,
+         text = "Strong Buy",
+         text_color = strongBuyColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 6,
+         text = formatCount(rec_sb),
+         text_color = strongBuyColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 7,
+         text = "Buy",
+         text_color = buyColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 7,
+         text = formatCount(rec_b),
+         text_color = buyColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 8,
+         text = "Hold",
+         text_color = holdColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 8,
+         text = formatCount(rec_h),
+         text_color = holdColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 9,
+         text = "Sell",
+         text_color = sellColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 9,
+         text = formatCount(rec_s),
+         text_color = sellColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 0,
+         row = 10,
+         text = "Strong Sell",
+         text_color = strongSellColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_left
+    )
+
+    table.cell(
+         table_id = analystTable,
+         column = 1,
+         row = 10,
+         text = formatCount(rec_ss),
+         text_color = strongSellColor,
+         bgcolor = panelBackground,
+         text_size = tableFontSize,
+         text_halign = text.align_right
+    )
+
+//──────────────────────────────────────────────────────────────────────────────
+// Status-line and Data Window values
+//──────────────────────────────────────────────────────────────────────────────
+
+plot(
+     tgt_max,
+     title = "Max Price",
+     color = color.rgb(8, 153, 129),
+     display = display.status_line + display.data_window
+)
+
+plot(
+     tgt_avg,
+     title = "Avg Price",
+     color = color.rgb(23, 108, 255),
+     display = display.status_line + display.data_window
+)
+
+plot(
+     tgt_min,
+     title = "Min Price",
+     color = color.rgb(242, 54, 69),
+     display = display.status_line + display.data_window
+)
+
+plot(
+     rec_sb,
+     title = "Strong Buy",
+     color = color.lime,
+     display = display.status_line + display.data_window
+)
+
+plot(
+     rec_b,
+     title = "Buy",
+     color = color.green,
+     display = display.status_line + display.data_window
+)
+
+plot(
+     rec_h,
+     title = "Hold",
+     color = color.orange,
+     display = display.status_line + display.data_window
+)
+
+plot(
+     rec_s,
+     title = "Sell",
+     color = color.red,
+     display = display.status_line + display.data_window
+)
+
+plot(
+     rec_ss,
+     title = "Strong Sell",
+     color = color.maroon,
+     display = display.status_line + display.data_window
+)

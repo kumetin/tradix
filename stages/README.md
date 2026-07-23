@@ -30,9 +30,12 @@ complete strategy.
 Future independently benchmarkable [entry models](OPERATIONS.md#entry-decisions-and-entry-models) should be added under
 `stages/entry-models/`.
 
-[Triggers](OPERATIONS.md#trigger), static universes, [funding profiles](OPERATIONS.md#funding-profiles), [evaluation plans](OPERATIONS.md#evaluation-plans), benchmarks, and
-market-data providers remain outside this directory. They configure or support
-a strategy/run but are not independently benchmarkable performance stages.
+[Triggers](OPERATIONS.md#trigger), static universes,
+[funding profiles](OPERATIONS.md#funding-profiles), and
+[evaluation plans](OPERATIONS.md#evaluation-plans) live under
+[`configuration/`](../configuration/README.md). Benchmarks and market-data
+providers are services or infrastructure. These types configure or support a
+strategy run but are not independently benchmarkable performance stages.
 
 Stage benchmarks remain under `backtests/components/`, behavioral contract tests
 under `tests/`, and generated results under `artifacts/stock/backtests/components/`.
