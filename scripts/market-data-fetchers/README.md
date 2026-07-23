@@ -105,6 +105,27 @@ The start and end dates are inclusive. Supply one or more `--watchlist` and/or
 rows are merged, split by year, and atomically rewritten. `--dataset-dir`,
 `--workers`, and `--source` override the defaults.
 
+## TipRanks Analyst Forecast Fetcher
+
+Fetch the TipRanks forecast-page consensus and detailed analyst iterations,
+calculate 30-day activity averages, and persist the normalized datasets:
+
+```sh
+python3 scripts/market-data-fetchers/fetch_tipranks_analysts.py AAPL MSFT
+```
+
+Summary observations are stored in
+`data/stock/tipranks-analysts-summary/<TICKER>.csv`; individual analyst
+iterations are stored in
+`data/stock/tipranks-analysts-activity/<TICKER>.csv`. Read the `.notes` in both
+directories for schemas and missing-value semantics.
+
+The fetcher tries direct HTTP and then installed headless Chrome. TipRanks may
+block local automation or omit rendered detail. On failure it exits without
+writing partial data; use the external-browser fallback required by
+`AGENTS.md`, normalize the same fields, and persist them to the same datasets.
+Missing analyst grades remain blank and are never inferred from Buy/Hold/Sell.
+
 ## SEC Quarterly Fundamentals Fetcher
 
 Fetch reported quarterly fundamentals from the SEC Company Facts API:
