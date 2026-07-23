@@ -1,6 +1,6 @@
 # Lower-Risk Swing Entry Stop-Model Sweep
 
-## Experiment Status
+## Status
 
 `rejected_for_promotion`
 
@@ -14,29 +14,31 @@ promotable.
 
 `lower-risk-swing-entry-stop-model-sweep`
 
-## Component Under Test
+## Reference Configuration
 
 - Setup evaluator: [`lower-risk-swing-entry`](../../stages/setup-evaluators/lower-risk-swing-entry.md)
-- Backtest spec: [`setup-signal-backtest`](../../backtests/components/setup-evaluators/setup-signal-backtest.md)
+- Benchmark protocol: [`setup-evaluator-forward-outcome-benchmark`](../../backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md)
 - [Evaluation plan](../../stages/OPERATIONS.md#evaluation-plans): [`lower-risk-swing-entry-iteration-plan`](../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 - Baseline: [`lower-risk-swing-entry-baseline-current-stop`](lower-risk-swing-entry-baseline-current-stop.md)
 
-## Evaluation Window
+## Hypothesis
+
+The baseline's high stop-loss rate is caused materially by stops that are too
+tight; widening risk or placing stops below support by an ATR multiple should
+improve realized outcomes without changing the evaluator's signal rules.
+
+## Controlled Settings
 
 | Setting | Value |
 | --- | --- |
-| Partition | Train/dev |
-| Start date | `2015-01-01` |
-| End date | `2019-12-31` |
+| Evaluation binding | Train/dev partition from the referenced evaluation plan |
 | Frequency | `weekly` |
 | Horizons | `20`, `40`, `60`, `90`, `120` |
-| Benchmark | `SPY` |
-| Secondary baseline | Equal-weight evaluated universe exposure |
 | Historical universe | Removed random-20 fixture; exact tickers remain in the recorded artifact run configurations. |
 | Evidence score gate | `70` |
 | Setup score thresholds | `70`, `80` |
 
-## Stop Models
+## Declared Deltas
 
 | Stop model | Meaning |
 | --- | --- |
@@ -46,7 +48,14 @@ promotable.
 | `support-atr-1.2` | Set stop at support minus `1.2x` ATR. |
 | `support-atr-1.5` | Set stop at support minus `1.5x` ATR. |
 
-## Artifact Runs
+## Success Criteria
+
+No separate numeric thresholds were recorded before this historical sweep.
+Promotion required improvement that was durable across horizons and remained
+competitive with both `SPY` and equal-weight universe exposure under the linked
+evaluation plan.
+
+## Run Index
 
 | Scenario | Artifact directory |
 | --- | --- |
@@ -61,7 +70,7 @@ promotable.
 | `stop-sweep-20-train-dev-ss80-es70-support-atr-12` | [`20260711-150433Z__lower-risk-swing-entry__stop-sweep-20-train-dev-ss80-es70-support-atr-12__03dad801`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260711-150433Z__lower-risk-swing-entry__stop-sweep-20-train-dev-ss80-es70-support-atr-12__03dad801/) |
 | `stop-sweep-20-train-dev-ss80-es70-support-atr-15` | [`20260711-150433Z__lower-risk-swing-entry__stop-sweep-20-train-dev-ss80-es70-support-atr-15__89c4c084`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260711-150433Z__lower-risk-swing-entry__stop-sweep-20-train-dev-ss80-es70-support-atr-15__89c4c084/) |
 
-## Aggregate Results
+## Results
 
 | Setup threshold | Stop model | Entry mode | Entered | Avg realized | Avg SPY | Avg universe | Edge vs SPY | Edge vs universe | Win rate | Stop rate |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -101,7 +110,7 @@ Use `support-atr-1.5` as the provisional stop model for the next train/dev
 iteration because it is clearly better than the current stop model, but treat
 it as only one part of the fix.
 
-## Next Experiment
+## Follow-up
 
 Keep the same train/dev period and frozen 20-ticker historical fixture recorded
 in the artifact run configurations.

@@ -27,9 +27,6 @@ complete strategy.
 | [Portfolio policy](OPERATIONS.md#portfolio-transitions-and-portfolio-policies) | [`portfolio-policies/`](portfolio-policies/README.md) |
 | [Execution model](OPERATIONS.md#execution-and-execution-models) | [`execution-models/`](execution-models/README.md) |
 
-Future independently benchmarkable [entry models](OPERATIONS.md#entry-decisions-and-entry-models) should be added under
-`stages/entry-models/`.
-
 [Triggers](OPERATIONS.md#trigger), static universes,
 [funding profiles](OPERATIONS.md#funding-profiles), and
 [evaluation plans](OPERATIONS.md#evaluation-plans) live under

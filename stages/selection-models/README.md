@@ -12,4 +12,6 @@ target weights, and fallback behavior.
 ## Available Selection Models
 
 - [SMA Drawdown Trailing Return](sma-drawdown-trailing-return.md)
+- [Technical Resistance Score](technical-resistance-score.md)
+- [Technical Resistance Score SPY SMA200 Gated](technical-resistance-score-spy-sma200-gated.md)
 - [Top N SMA Drawdown Trailing Return](top-n-sma-drawdown-trailing-return.md)

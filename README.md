@@ -92,7 +92,7 @@ Credentials belong in rclone's per-user configuration, never in Git or
 See [B2 Storage and Recovery](scripts/B2-STORAGE.md) for remote configuration,
 authority transfer, safety controls, reconciliation, repair, and recovery.
 
-After either bootstrap path, validate repository profiles and local inputs:
+After either bootstrap path, validate repository definitions and local inputs:
 
 ```sh
 python3 tests/validation/validate_static_profiles.py
@@ -109,16 +109,31 @@ trigger
 → universe resolution
 → market-data resolution
 → selection
-→ entry decision
+→ optional setup evaluation
 → portfolio transition
 → execution
 ```
+
+## Canonical Terminology
+
+| Term | Meaning |
+| --- | --- |
+| Stage descriptor | A version-controlled reusable component contract under `stages/`, including behavior, declared parameters, and defaults. |
+| Implementation | Executable code that realizes a stage descriptor. |
+| Configuration profile | A reusable declarative, non-component run input under `configuration/`, such as a static universe or funding profile. |
+| Stage instance | One stage descriptor plus parameter values resolved for a scenario or run. |
+| Strategy scenario | A complete executable strategy-backtest specification under `backtests/strategies/`. |
+| Run configuration | The fully resolved values used by one execution and recorded with its artifacts. |
+
+Use `descriptor` only for reusable stages, `profile` only for reusable files
+under `configuration/`, and `instance` only after descriptor parameters have
+been resolved. Avoid bare `configuration` when `configuration profile`,
+`strategy scenario`, or `run configuration` is the precise term.
 
 The responsibilities and test layers for [triggers](stages/OPERATIONS.md#trigger),
 [universe models](stages/OPERATIONS.md#universe-resolution-and-universe-models),
 [market-data resolution](stages/OPERATIONS.md#market-data-resolution),
 [selection models](stages/OPERATIONS.md#selection-and-selection-models),
-[entry models](stages/OPERATIONS.md#entry-decisions-and-entry-models),
 [portfolio policies](stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies),
 [execution models](stages/OPERATIONS.md#execution-and-execution-models),
 [funding profiles](stages/OPERATIONS.md#funding-profiles), and
@@ -137,6 +152,58 @@ prices, features, constituents, analyst data, classifications, or fundamentals.
 Keep warm-up rows outside reported performance, label universe bias, preserve
 locked holdouts, and compare results with `SPY` and an equal-weight dated
 universe when possible.
+
+## Research Ownership Map
+
+```mermaid
+flowchart LR
+    subgraph D["Durable definitions"]
+        ST["strategies/<br/>Why should an edge exist?"]
+        CP["stages/ + configuration/<br/>Reusable behavior and run inputs"]
+        CB["backtests/components/<br/>Generic component measurement protocol"]
+        EP["configuration/evaluations/<br/>Windows, warm-up, splits, holdouts"]
+    end
+
+    subgraph X["Executable or declared research"]
+        SB["backtests/strategies/<br/>Exact runnable strategy scenario"]
+        SE["Strategy experiment<br/>Question + scenario reference + deltas"]
+        CE["Component experiment<br/>Question + component/protocol/evaluation bindings + grid"]
+    end
+
+    subgraph R["Research history"]
+        AR["artifacts/stock/backtests/<br/>Immutable output from exact runs"]
+        RD["Experiment results<br/>Findings + decision + follow-up"]
+    end
+
+    ST -->|"thesis used by"| SB
+    CP -->|"descriptors and profiles bound by"| SB
+    EP -->|"evaluation bound by"| SB
+    SB -->|"referenced without copying"| SE
+
+    CP -->|"stage descriptor"| CE
+    CB -->|"measurement contract"| CE
+    EP -->|"evaluation binding"| CE
+
+    SE -->|"runs produce"| AR
+    CE -->|"runs produce"| AR
+    AR -->|"indexed and summarized by"| RD
+    SE -->|"owns lifecycle"| RD
+    CE -->|"owns lifecycle"| RD
+```
+
+Read the diagram as four questions:
+
+| Location | Question it answers |
+| --- | --- |
+| `strategies/` | Why should this market behavior create an edge? |
+| `backtests/strategies/` or `backtests/components/` | What exact system or measurement protocol can be run? |
+| `experiments/` | What did we vary, what happened, and what did we decide? |
+| `artifacts/stock/backtests/` | What exactly did one resolved run output? |
+
+The key asymmetry is intentional: a strategy scenario already contains its
+complete executable bindings, so its experiment references the scenario and
+records only deltas. A generic component protocol is not a configured run, so
+its experiment must also bind the concrete component and evaluation plan.
 
 Authoritative references:
 
@@ -157,7 +224,8 @@ strategies/<strategy-name>.md
 The definition must state the proposed mechanism, observable point-in-time
 proxies, prediction horizon, required component behavior, thesis-preserving
 variations, thesis-changing substitutions, and falsification criteria. Concrete
-run profiles and evaluation windows do not belong to the strategy definition.
+stage instances, configuration profiles, and evaluation windows do not belong
+to the strategy definition.
 
 See [Strategies](strategies/README.md) and the
 [Momentum Rotation strategy](strategies/momentum-rotation.md). Externally sourced
@@ -175,10 +243,10 @@ backtests/strategies/<strategy-id>/<test-id>.md
 A strategy backtest specification selects a strategy thesis and supplies the
 concrete stage and configuration bindings required to execute it. These may
 include a trigger, universe configuration or universe model, market-data
-provider, selection model, entry model or strategy-owned entry rule, portfolio
-policy, execution model, funding profile, evaluation plan, and benchmarks. The
-specification states which thesis prediction or robustness dimension is being
-tested, what varies, and what remains controlled.
+provider, selection model, optional setup evaluator, portfolio policy,
+execution model, funding profile, evaluation plan, and benchmarks. The
+specification is an executable scenario; research hypotheses, declared
+comparisons, run history, and conclusions belong under `experiments/`.
 
 Independent component benchmarks live under:
 

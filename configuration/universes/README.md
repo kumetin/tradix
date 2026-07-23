@@ -22,5 +22,11 @@ selection belongs to the configured selection model.
 
 ## Available Static Universes
 
-None currently registered. Query-defined dynamic universes live under
+- [Random S&P 500 Stocks 50 — Universe 1](random-sp500-50-1.md)
+- [Random S&P 500 Stocks 50 — Universe 2](random-sp500-50-2.md)
+- [Random S&P 500 Stocks 50 — Universe 3](random-sp500-50-3.md)
+- [Random S&P 500 Stocks 50 — Universe 4](random-sp500-50-4.md)
+- [Random S&P 500 Stocks 50 — Universe 5](random-sp500-50-5.md)
+
+Query-defined dynamic universes live under
 [`stages/universe-models/`](../../stages/universe-models/README.md).

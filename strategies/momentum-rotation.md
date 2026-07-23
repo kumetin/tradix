@@ -63,8 +63,7 @@ semantics.
 | Pipeline operation | Thesis-preserving requirement |
 | --- | --- |
 | [Universe model](../stages/OPERATIONS.md#universe-resolution-and-universe-models) | Produces reproducible point-in-time membership with enough history for every required proxy. |
-| [Selection model](../stages/OPERATIONS.md#selection-and-selection-models) | Implements broader-trend eligibility, rolling-high drawdown eligibility, intermediate trailing-return ranking, deterministic target construction, and declared no-eligible-candidate behavior. |
-| [Entry decision](../stages/OPERATIONS.md#entry-decisions-and-entry-models) | Implements a bounded consecutive-down-close pullback and an explicit opportunity-expiry rule. |
+| [Selection model](../stages/OPERATIONS.md#selection-and-selection-models) | Implements broader-trend eligibility, rolling-high drawdown eligibility, intermediate trailing-return ranking, the bounded consecutive-down-close pullback, deterministic target construction, and declared opportunity-expiry/no-eligible-candidate behavior. |
 | [Portfolio policy](../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies) | Can consume the selection model's single- or multi-target intent without changing its rank order. |
 | [Execution model](../stages/OPERATIONS.md#execution-and-execution-models) | Prevents fills before the signal is knowable and accounts for the configured costs and settlement constraints. |
 
@@ -73,7 +72,7 @@ The current compatible selection implementations are
 and
 [Top N SMA Drawdown Trailing Return](../stages/selection-models/top-n-sma-drawdown-trailing-return.md).
 
-## Entry Rule
+## Signal Qualification Rule
 
 After selection, wait for the configured number of consecutive down closes:
 
@@ -160,7 +159,7 @@ This strategy follows the
 [canonical strategy decision pipeline](README.md#canonical-strategy-decision-pipeline).
 The momentum and trend rules constrain selection. The pullback rule owns the
 entry-decision operation. Concrete universe, portfolio, execution, funding, and
-evaluation profiles are experimental bindings rather than the thesis itself.
+evaluation plans are experimental bindings rather than the thesis itself.
 
 ## Backtests
 

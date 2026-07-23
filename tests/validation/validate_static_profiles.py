@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Validate static platform profile Markdown files.
+"""Validate stage descriptors, configuration profiles, and scenario bindings.
 
 Parameters:
-    None; repository roots and expected profile locations are derived from this
-    file's path.
+    None; repository roots and expected definition locations are derived from
+    this file's path.
 External sources:
-    Local Markdown profiles, backtest specifications, and validation contracts
-    documented in ``tests/validation/static-profiles.md``.
+    Local stage descriptors, configuration profiles, backtest specifications,
+    and validation contracts documented in
+    ``tests/validation/static-profiles.md``.
 Side effects:
     Reads repository files, writes a pass/warn/fail report to stdout, and exits
-    nonzero when validation errors exist. It does not modify profiles.
+    nonzero when validation errors exist. It does not modify repository
+    definitions.
 Examples:
     Run the validator from the repository root::
 
@@ -50,10 +52,6 @@ OPERATION_LINK_RULES = {
         "OPERATIONS.md#selection-and-selection-models",
     ),
     "setup evaluator": (r"\bsetup evaluators?\b", "OPERATIONS.md#setup-evaluators"),
-    "entry": (
-        r"\b(?:entry decisions?|entry models?)\b",
-        "OPERATIONS.md#entry-decisions-and-entry-models",
-    ),
     "portfolio": (
         r"\b(?:portfolio transitions?|portfolio polic(?:y|ies))\b",
         "OPERATIONS.md#portfolio-transitions-and-portfolio-policies",
@@ -105,6 +103,9 @@ def main() -> int:
     validate_funding(report)
     validate_triggers(report)
     validate_evaluations(report)
+    validate_terminology(report)
+    validate_research_boundaries(report)
+    validate_setup_evaluator_descriptors(report)
     validate_strategy_backtests(report)
     validate_component_backtests(report)
     validate_operation_links(report)
@@ -116,7 +117,7 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def profile_files(directory: str) -> list[Path]:
+def configuration_profile_files(directory: str) -> list[Path]:
     base = ROOT / directory
     return sorted(path for path in base.glob("*.md") if path.name != "README.md")
 
@@ -171,7 +172,7 @@ def parse_date(value: str | None) -> dt.date | None:
 
 def validate_universes(report: Report) -> None:
     symbols_available = available_price_symbols()
-    for path in profile_files("configuration/universes"):
+    for path in configuration_profile_files("configuration/universes"):
         text = read(path)
         fallback = extract_inline_code_after_heading(text, "Fallback Ticker")
         tickers = extract_bullets(extract_section(text, "Tickers"))
@@ -230,7 +231,7 @@ def validate_operation_links(report: Report) -> None:
 
 
 def validate_funding(report: Report) -> None:
-    for path in profile_files("configuration/funding"):
+    for path in configuration_profile_files("configuration/funding"):
         text = read(path)
         label = rel(path)
         initial = parse_money(extract_table_value(text, "initial_lump_sum"))
@@ -251,7 +252,7 @@ def validate_funding(report: Report) -> None:
 
 
 def validate_triggers(report: Report) -> None:
-    for path in profile_files("configuration/triggers"):
+    for path in configuration_profile_files("configuration/triggers"):
         text = read(path)
         label = rel(path)
         value = extract_table_value(text, "trigger_frequency")
@@ -282,7 +283,7 @@ def validate_evaluations(report: Report) -> None:
         if re.search(r"warm-?up|reported performance|metrics", text, re.I):
             report.pass_(f"{label}: warm-up/evaluation distinction mentioned")
         else:
-            report.warn(f"{label}: warm-up exclusion not mentioned in profile")
+            report.warn(f"{label}: warm-up exclusion not mentioned in evaluation plan")
 
         split_method = extract_table_value(text, "split_method") or ""
         if re.search(r"locked|holdout", split_method, re.I):
@@ -311,7 +312,12 @@ def validate_strategy_backtests(report: Report) -> None:
         if missing_links:
             report.error(f"{label}: missing linked files: {', '.join(missing_links)}")
         else:
-            report.pass_(f"{label}: linked profile files resolve")
+            report.pass_(f"{label}: linked scenario bindings resolve")
+
+        if extract_section(text, "Configuration Intent"):
+            report.pass_(f"{label}: configuration intent declared")
+        else:
+            report.error(f"{label}: configuration intent missing")
 
         selection = linked_path_containing(linked_files, "selection-models")
         policy = linked_path_containing(linked_files, "portfolio-policies")
@@ -336,6 +342,148 @@ def validate_strategy_backtests(report: Report) -> None:
             report.warn(f"{label}: no benchmark declaration in backtest spec")
 
 
+def validate_terminology(report: Report) -> None:
+    ambiguous_patterns = (
+        r"\bcomponent profiles?\b",
+        r"\bstage profiles?\b",
+        r"\bselection-model profiles?\b",
+        r"\bsetup-evaluator profiles?\b",
+        r"\bportfolio-policy profiles?\b",
+        r"\bexecution-model profiles?\b",
+        r"\bevaluation profiles?\b",
+        r"\brun profiles?\b",
+        r"\brunner profiles?\b",
+    )
+    roots = (
+        ROOT / "README.md",
+        ROOT / "AGENTS.md",
+        ROOT / "stages",
+        ROOT / "strategies",
+        ROOT / "backtests",
+        ROOT / "configuration",
+        ROOT / "experiments",
+        ROOT / "scripts",
+        ROOT / "tests",
+    )
+    paths = []
+    for root in roots:
+        if root.is_file():
+            paths.append(root)
+        else:
+            paths.extend(root.rglob("*.md"))
+
+    violations = []
+    for path in sorted(set(paths)):
+        if "archive" in path.parts:
+            continue
+        text = read(path)
+        matches = [
+            pattern
+            for pattern in ambiguous_patterns
+            if re.search(pattern, text, re.I)
+        ]
+        if matches:
+            violations.append(rel(path))
+
+    if violations:
+        report.error(
+            "ambiguous descriptor/profile terminology found: "
+            + ", ".join(violations)
+        )
+    else:
+        report.pass_(
+            "terminology distinguishes stage descriptors, configuration "
+            "profiles, stage instances, scenarios, and run configurations"
+        )
+
+
+def validate_research_boundaries(report: Report) -> None:
+    forbidden_strategy_headings = {
+        "Research Status",
+        "Run Index",
+        "Artifact Runs",
+        "Results",
+        "Findings",
+        "Decision",
+    }
+    forbidden_scenario_headings = {
+        "Experiment Status",
+        "Status",
+        "Hypothesis",
+        "Thesis Claim Under Test",
+        "Success Criteria",
+        "Run Index",
+        "Artifact Runs",
+        "Results",
+        "Findings",
+        "Decision",
+        "Evidence Against the Claim",
+    }
+
+    checks = (
+        ("strategies", sorted((ROOT / "strategies").glob("*.md")), forbidden_strategy_headings),
+        (
+            "strategy backtests",
+            sorted((ROOT / "backtests/strategies").glob("*/*.md")),
+            forbidden_scenario_headings,
+        ),
+    )
+    for group, paths, forbidden in checks:
+        violations = []
+        for path in paths:
+            headings = set(re.findall(r"^#{2,3} (.+?)\s*$", read(path), re.M))
+            present = sorted(headings & forbidden)
+            if present:
+                violations.append(f"{rel(path)} ({', '.join(present)})")
+        if violations:
+            report.error(f"{group}: research-owned headings found: {'; '.join(violations)}")
+        else:
+            report.pass_(f"{group}: research lifecycle content stays in experiments")
+
+
+def validate_setup_evaluator_descriptors(report: Report) -> None:
+    required_sections = (
+        "ID",
+        "Stage Type",
+        "Purpose",
+        "Input Contract",
+        "Output Contract",
+        "Behavior",
+        "Parameters",
+        "Data Requirements",
+        "Point-in-Time Rules",
+        "Failure Behavior",
+        "Benchmark Contract",
+        "Implementation",
+    )
+    base = ROOT / "stages/setup-evaluators"
+    paths = sorted(
+        path
+        for path in base.glob("*.md")
+        if path.name != "README.md"
+    )
+    for path in paths:
+        text = read(path)
+        label = rel(path)
+        missing = [
+            heading
+            for heading in required_sections
+            if not extract_section(text, heading)
+        ]
+        if missing:
+            report.error(
+                f"{label}: setup-evaluator descriptor sections missing: "
+                f"{', '.join(missing)}"
+            )
+        else:
+            report.pass_(f"{label}: setup-evaluator descriptor schema complete")
+
+        if re.search(r"^## (?:Output Format|Human Review Inputs|Role)$", text, re.M):
+            report.error(f"{label}: consumer presentation content belongs outside stages")
+        else:
+            report.pass_(f"{label}: presentation concerns delegated to consumers")
+
+
 def validate_component_backtests(report: Report) -> None:
     base = ROOT / "backtests/components"
     if not base.exists():
@@ -358,9 +506,15 @@ def validate_component_backtests(report: Report) -> None:
         if missing_links:
             report.error(f"{label}: missing linked files: {', '.join(missing_links)}")
         else:
-            report.pass_(f"{label}: linked profile files resolve")
+            report.pass_(f"{label}: linked component bindings resolve")
 
+        binding_mode = "descriptor"
         component_type = extract_inline_code_after_heading(text, "Component Under Test")
+        if not component_type:
+            component_type = extract_inline_code_after_heading(
+                text, "Applicable Component Type"
+            )
+            binding_mode = "type"
         if component_type:
             report.pass_(f"{label}: component type declared as {component_type}")
         else:
@@ -368,15 +522,17 @@ def validate_component_backtests(report: Report) -> None:
 
         component_dir = component_type_to_dir(component_type or "")
         primary_root = ROOT / component_dir if component_dir else None
-        primary_component = (
+        primary_descriptor = (
             next((linked for linked in linked_files if primary_root in linked.parents), None)
             if primary_root
             else None
         )
-        if primary_component:
-            report.pass_(f"{label}: primary component profile linked")
+        if binding_mode == "type" and component_type:
+            report.pass_(f"{label}: concrete stage descriptor delegated to experiment")
+        elif primary_descriptor:
+            report.pass_(f"{label}: primary stage descriptor linked")
         else:
-            report.error(f"{label}: primary component profile link missing")
+            report.error(f"{label}: primary stage descriptor link missing")
 
         backtest_type_values = extract_inline_codes_after_heading(text, "Backtest Type")
         backtest_type = backtest_type_values[0] if backtest_type_values else ""
@@ -394,9 +550,11 @@ def validate_component_backtests(report: Report) -> None:
             report.error(f"{label}: isolated component backtest missing direct input/output contract")
 
         if linked_path_containing(linked_files, "evaluations"):
-            report.pass_(f"{label}: evaluation profile linked")
+            report.pass_(f"{label}: evaluation plan linked")
+        elif binding_mode == "type":
+            report.pass_(f"{label}: concrete evaluation plan delegated to experiment")
         else:
-            report.warn(f"{label}: no evaluation profile linked")
+            report.warn(f"{label}: no evaluation plan linked")
 
         if extract_section(text, "Metrics"):
             report.pass_(f"{label}: metrics section present")

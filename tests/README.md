@@ -19,7 +19,7 @@ validation checks rather than full behavioral tests.
 | Component behavior | Verify that a component satisfies its contract in isolation. |
 | Component backtest | Compare one component's direct outputs using a fixed input fixture. |
 | Strategy backtest | Verify that a configured strategy works end to end. |
-| Static validation | Verify that profile files are internally consistent. |
+| Static validation | Verify that descriptors, configuration profiles, and scenario bindings are internally consistent. |
 
 ## Scoring
 

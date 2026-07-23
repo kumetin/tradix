@@ -20,7 +20,7 @@ components. Validate calendar behavior, cutoff semantics, duplicate/missed
 firings, holidays, and point-in-time safety with deterministic schedule tests.
 
 **Configured-strategy assessment:** compare trigger frequencies or timing rules
-as strategy-backtest variants while holding the thesis and other profiles
+as strategy-scenario variants while holding the thesis and other bindings
 constant. Measure opportunity capture, turnover, latency, and resulting
 performance without attributing predictive skill to the trigger alone.
 
@@ -36,8 +36,9 @@ membership correctness, mandate coverage, investability, membership stability,
 turnover, missing-data behavior, opportunity coverage, and deterministic
 replay. Static ticker lists receive schema and availability validation only.
 
-**Configured-strategy assessment:** vary the universe profile in otherwise
-identical strategy backtests to test breadth, capacity, constituent bias, and
+**Configured-strategy assessment:** vary the universe binding—either a static
+universe configuration profile or a universe-model descriptor—in otherwise
+identical strategy scenarios to test breadth, capacity, constituent bias, and
 out-of-population robustness. Compare against equal-weight exposure to each
 dated universe and avoid treating universe choice as selection-model alpha.
 
@@ -68,8 +69,9 @@ Measure rank correlation, rank-bucket monotonicity, top-selection excess forward
 outcome, hit rate, fallback rate, deterministic stability, and behavior under
 missing inputs. No complete portfolio simulation is required.
 
-**Configured-strategy assessment:** bind the selection model to fixed universe,
-entry, portfolio, execution, funding, and evaluation profiles. Compare model or
+**Configured-strategy assessment:** bind the selection-model descriptor to a
+fixed universe binding, portfolio-policy descriptor, execution-model
+descriptor, funding profile, and evaluation plan. Compare descriptor or
 parameter variants against simple selectors and equal-weight dated-universe
 exposure, measuring whether isolated rank quality survives turnover, capacity,
 cash, and costs.
@@ -88,23 +90,6 @@ and missing-data behavior over identical ticker-date fixtures.
 inside otherwise fixed strategy backtests. Compare filtered versus unfiltered
 signals and baselines while measuring opportunity loss, turnover, portfolio
 effects, and whether standalone calibration survives the strategy context.
-
-## Entry Decisions and Entry Models
-
-**Responsibility:** determine whether and when selected target intent becomes
-actionable and propose an entry time or price. The behavior may be a reusable
-entry model or a strategy-owned entry rule when it is inseparable from the
-strategy thesis.
-
-**Independent assessment:** replay identical point-in-time target and market
-fixtures. Compare entry improvement, missed-entry rate, adverse/favorable
-excursion, time to fill, expiry behavior, and leakage-safe signal/fill timing
-against immediate-entry and simple timing baselines.
-
-**Configured-strategy assessment:** compare entry variants with selection and
-portfolio behavior fixed. Measure whether standalone price improvement survives
-missed opportunities, delayed exposure, turnover, costs, and the strategy's
-prediction horizon.
 
 ## Portfolio Transitions and Portfolio Policies
 

@@ -6,8 +6,8 @@ Parameters:
     can select a harness adapter, ``--validate-only`` suppresses execution, and
     arguments after ``--`` are forwarded to the selected driver.
 External sources:
-    Local backtest specifications, referenced profiles, and repository backtest
-    driver modules.
+    Local backtest specifications, referenced stage descriptors/configuration
+    profiles, and repository backtest driver modules.
 Side effects:
     Validation reads files and prints a result. Execution imports and invokes a
     driver, which may write artifacts according to that driver's contract.
@@ -18,7 +18,7 @@ Examples:
 
     Run an isolated setup-evaluator specification and forward driver options::
 
-        python3 scripts/backtests/run_backtest.py backtests/components/setup-evaluators/setup-signal-backtest.md --evaluator lower-risk-swing-entry -- --tickers NVDA --start-date 2025-01-01 --end-date 2025-12-31
+        python3 scripts/backtests/run_backtest.py backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md --evaluator lower-risk-swing-entry -- --tickers NVDA --start-date 2025-01-01 --end-date 2025-12-31
 """
 
 from __future__ import annotations
@@ -97,7 +97,10 @@ def resolve_backtest_spec(path: Path) -> BacktestSpec:
             path=resolved,
             kind=SPEC_COMPONENT,
             title=title,
-            component_type=inline_code_after_heading(text, "Component Under Test"),
+            component_type=(
+                inline_code_after_heading(text, "Component Under Test")
+                or inline_code_after_heading(text, "Applicable Component Type")
+            ),
             backtest_type=inline_code_after_heading(text, "Backtest Type"),
         )
     raise BacktestDriverError("Backtest spec must live under backtests/strategies/ or backtests/components/.")
@@ -110,14 +113,17 @@ def validate_spec(spec: BacktestSpec) -> None:
         raise BacktestDriverError(f"Missing linked files in {rel(spec.path)}: {', '.join(missing_links)}")
 
     if spec.kind == SPEC_STRATEGY:
-        require_section(text, "Edge Being Tested", spec)
+        require_section(text, "Configuration Intent", spec)
         require_section(text, "Benchmarks", spec)
         if not re.search(r"^Strategy:\s*\[[^]]+\]\([^)]+\)", text, re.MULTILINE):
             raise BacktestDriverError(f"{rel(spec.path)} must reference a Strategy")
         return
 
     if not spec.component_type:
-        raise BacktestDriverError(f"{rel(spec.path)} must declare Component Under Test")
+        raise BacktestDriverError(
+            f"{rel(spec.path)} must declare Component Under Test "
+            "or Applicable Component Type"
+        )
     if spec.backtest_type != BACKTEST_ISOLATED:
         raise BacktestDriverError(
             f"{rel(spec.path)} must declare {BACKTEST_ISOLATED!r}; "
@@ -130,6 +136,101 @@ def validate_spec(spec: BacktestSpec) -> None:
 
 
 def run_strategy_backtest(spec: BacktestSpec, driver_args: Sequence[str]) -> int:
+    relative = spec.path.relative_to(ROOT)
+    if relative == Path(
+        "backtests/strategies/technical-resistance-runner/"
+        "tc-001-random-50-universe-1-monthly.md"
+    ):
+        module = import_module_from_path(
+            SCRIPT_DIR / "strategies/technical_resistance_runner.py",
+            "technical_resistance_runner_strategy_backtest",
+        )
+        return module.main(driver_args)
+    if relative == Path(
+        "backtests/strategies/technical-resistance-runner/"
+        "tc-002-random-50-universe-1-sma50-exit.md"
+    ):
+        module = import_module_from_path(
+            SCRIPT_DIR / "strategies/technical_resistance_runner.py",
+            "technical_resistance_runner_sma50_strategy_backtest",
+        )
+        defaults = [
+            "--exit-variant",
+            "full_at_5_21_sma50_exit",
+            "--output",
+            str(
+                ROOT
+                / "artifacts/stock/backtests/strategies/technical-resistance-runner/"
+                "robustness/universe-1/full_at_5_21-sma50-exit"
+            ),
+        ]
+        return module.main(defaults + list(driver_args))
+    if relative == Path(
+        "backtests/strategies/technical-resistance-runner/"
+        "tc-003-pre-2014-sma50-robustness.md"
+    ):
+        module = import_module_from_path(
+            SCRIPT_DIR / "strategies/technical_resistance_runner.py",
+            "technical_resistance_runner_pre2014_strategy_backtest",
+        )
+        windows = (
+            ("crisis", "2007-01-03", "2009-12-31"),
+            ("recovery", "2010-01-04", "2013-12-31"),
+        )
+        for name, start, end in windows:
+            for variant, output_name in (
+                ("full_at_5_21", "baseline"),
+                ("full_at_5_21_sma50_exit", "sma50"),
+            ):
+                status = module.main(
+                    [
+                        "--evaluation-start",
+                        start,
+                        "--evaluation-end",
+                        end,
+                        "--exit-variant",
+                        variant,
+                        "--output",
+                        str(
+                            ROOT
+                            / "artifacts/stock/backtests/strategies/"
+                            "technical-resistance-runner/untried-windows"
+                            / name
+                            / output_name
+                        ),
+                    ]
+                    + list(driver_args)
+                )
+                if status:
+                    return status
+        return 0
+    if relative == Path(
+        "backtests/strategies/regime-gated-technical-resistance/"
+        "tc-001-eight-dataset-robustness.md"
+    ):
+        module = import_module_from_path(
+            SCRIPT_DIR / "strategies/technical_resistance_runner.py",
+            "regime_gated_technical_resistance_strategy_backtest",
+        )
+        defaults = [
+            "--exit-variant",
+            "full_at_5_21",
+            "--market-regime-sma-window",
+            "200",
+            "--stop-loss-return",
+            "0.15",
+            "--slippage-bps",
+            "10",
+            "--fee-per-order",
+            "1",
+            "--output",
+            str(
+                ROOT
+                / "artifacts/stock/backtests/strategies/technical-resistance-runner/"
+                "autonomous-costs/universe-1/market-sma-200-stop-15"
+            ),
+        ]
+        return module.main(defaults + list(driver_args))
     raise BacktestDriverError(
         f"Strategy backtest driver selected for {rel(spec.path)}, but no portfolio-level engine is registered yet."
     )

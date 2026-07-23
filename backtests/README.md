@@ -2,9 +2,10 @@
 
 This directory contains all backtest specifications.
 
-- `strategies/` contains full strategy backtests. Each strategy backtest selects
-  a falsifiable strategy thesis, binds reusable platform profiles and parameter
-  values, and states the thesis claim or robustness dimension being tested.
+- `strategies/` contains executable full-strategy scenarios. Each scenario
+  selects a falsifiable strategy thesis and binds stage descriptors,
+  configuration profiles, and parameter values. Research hypotheses and outcomes belong under
+  [`experiments/`](../experiments/README.md).
 - `components/` contains independent component benchmarks. A component must
   expose a direct contract that can be compared without a complete strategy.
 
@@ -29,11 +30,7 @@ Driver contracts are documented in
 
 ## Strategy Backtests
 
-### Momentum Rotation
-
-- [TC-001: Point-in-Time S&P 500 New-Money Allocation](strategies/momentum-rotation/tc-001-point-in-time-sp500.md)
-- [TC-002: Investable US Equities Single-Position Rotation](strategies/momentum-rotation/tc-002-investable-us-equities-single-position.md)
-- [TC-003: Investable US Equities Multi-Position Initial Only](strategies/momentum-rotation/tc-003-investable-us-equities-multi-position-initial-only.md)
+See the [complete strategy-backtest catalog](strategies/README.md).
 
 ## Component Backtests
 
@@ -43,7 +40,7 @@ Driver contracts are documented in
 
 ### [Setup Evaluator](../stages/OPERATIONS.md#setup-evaluators)
 
-- [Setup Signal Backtest](components/setup-evaluators/setup-signal-backtest.md)
+- [Setup-Evaluator Forward-Outcome Benchmark](components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md)
 
 ### [Portfolio Policy](../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies)
 

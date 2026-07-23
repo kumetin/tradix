@@ -104,3 +104,55 @@ The start and end dates are inclusive. Supply one or more `--watchlist` and/or
 `--symbol` arguments; duplicate symbols are collapsed. Existing and fetched
 rows are merged, split by year, and atomically rewritten. `--dataset-dir`,
 `--workers`, and `--source` override the defaults.
+
+## SEC Quarterly Fundamentals Fetcher
+
+Fetch reported quarterly fundamentals from the SEC Company Facts API:
+
+```sh
+SEC_USER_AGENT='Tradix your-email@example.com' \
+python3 scripts/market-data-fetchers/fetch_stock_fundamentals.py AAPL \
+  --start-date 2014-01-01
+```
+
+Persist one or more tickers into the canonical quarterly dataset:
+
+```sh
+SEC_USER_AGENT='Tradix your-email@example.com' \
+python3 scripts/market-data-fetchers/fill_stock_fundamentals.py \
+  --symbol AAPL --symbol MSFT
+```
+
+Use `--all-local-symbols` to attempt every ticker in the daily price dataset.
+The filler retrieves the SEC ticker map once, fetches one Company Facts document
+per eligible ticker, and defaults to a request interval that stays below the
+SEC's published 10-request-per-second maximum.
+
+Canonical rows are stored under
+`data/stock/fundamentals/quarterly/<available-year>/<ticker>.csv`. The
+`available_date` is the SEC filing date, not the fiscal period end. Only
+genuinely quarterly duration contexts are accepted; year-to-date and annual
+contexts are excluded rather than mislabeled as quarterly observations.
+Institutional ownership is not supplied by Company Facts and therefore remains
+blank. Set `SEC_USER_AGENT` to an application name and real contact email, as
+required by SEC automated-access policy.
+
+## Institutional Holdings Snapshots
+
+Fetch Nasdaq's current ticker-level institutional holdings and aggregate each
+holder's reported share change:
+
+```sh
+python3 scripts/market-data-fetchers/fetch_stock_institutional_holdings.py AAPL
+python3 scripts/market-data-fetchers/fill_stock_institutional_holdings.py \
+  --all-local-symbols
+```
+
+Snapshots are persisted under
+`data/stock/institutions/quarterly/<available-year>/<ticker>.csv`. The
+`available_date` is the fetch date. Snapshots are never backdated to the latest
+13F report period because holdings become public after the reporting date and
+Nasdaq's aggregate may contain managers with different latest report dates.
+`net_reported_shares_change` is the sum of the holder-level changes in the
+complete response. It is a reported-position accumulation signal, not a claim
+about beneficial ownership, short interest, or current intraday holdings.

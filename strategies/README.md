@@ -18,7 +18,7 @@ Every strategy definition must state:
 Every strategy follows the same canonical decision pipeline. Individual
 strategy definitions describe strategy-owned rules, optional operations, and
 compatibility requirements; they do not duplicate this table or bind concrete
-run profiles.
+stage instances or configuration profiles.
 
 ## Canonical Strategy Decision Pipeline
 
@@ -28,9 +28,9 @@ run profiles.
 | 2 | [Universe resolution](../stages/OPERATIONS.md#universe-resolution-and-universe-models) | Produces the point-in-time candidate set from a static configuration or universe model. |
 | 3 | [Market-data resolution](../stages/OPERATIONS.md#market-data-resolution) | Supplies only data knowable at the relevant cutoff to the operations that require it. |
 | 4 | [Selection](../stages/OPERATIONS.md#selection-and-selection-models) | Applies strategy-specific eligibility and ranking and emits target intent. |
-| 5 | [Entry decision](../stages/OPERATIONS.md#entry-decisions-and-entry-models) | Determines whether and when target intent becomes actionable; it may be a reusable entry model or a strategy-owned rule. |
-| 6 | [Portfolio transition](../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies) | Combines target intent with positions, cash, and constraints to produce order intents. |
-| 7 | [Execution](../stages/OPERATIONS.md#execution-and-execution-models) | Converts order intents into fills, rejections, costs, settlement movements, and resulting account state. |
+| 5 | Optional [setup evaluation](../stages/OPERATIONS.md#setup-evaluators) | Qualifies selected instruments and may add actionable entry, invalidation, and target levels. Skip this operation when selection already emits sufficient target intent. |
+| 6 | [Portfolio transition](../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies) | Combines qualified target intent with positions, cash, and constraints to produce order intents. |
+| 7 | [Execution](../stages/OPERATIONS.md#execution-and-execution-models) | Applies declared order timing and converts order intents into fills, rejections, costs, settlement movements, and resulting account state. |
 
 [Funding](../stages/OPERATIONS.md#funding-profiles) is an exogenous account event that may occur before or between decision
 cycles. [Evaluation](../stages/OPERATIONS.md#evaluation-plans) and benchmarks observe run outputs; they are not downstream
@@ -53,6 +53,20 @@ live trading. Each consumer supplies its own surrounding implementations:
 
 Configured strategy backtests belong under `backtests/strategies/`.
 
+## Ownership Boundary
+
+A strategy definition is durable across many configurations and experiments.
+It owns the market thesis and the rules that determine whether a variation
+preserves or changes that thesis. It does not own runner bindings, evaluation
+windows, research status, artifact links, or observed results.
+
+Executable bindings live under
+[`backtests/strategies/`](../backtests/strategies/README.md). Research
+hypotheses, run registries, findings, and decisions live under
+[`experiments/`](../experiments/README.md).
+
 ## Available Strategies
 
 - [Momentum Rotation](momentum-rotation.md)
+- [Technical Resistance Runner](technical-resistance-runner.md)
+- [Regime-Gated Technical Resistance](regime-gated-technical-resistance.md)

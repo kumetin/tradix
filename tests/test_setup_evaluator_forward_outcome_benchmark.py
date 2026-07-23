@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test generic setup-evaluator backtest helpers.
+"""Test generic setup-evaluator forward-outcome benchmark helpers.
 
 Parameters:
     None; unittest discovers the test methods.
@@ -11,11 +11,11 @@ Side effects:
 Examples:
     Run this test module directly::
 
-        python3 tests/test_setup_evaluator_backtest.py
+        python3 tests/test_setup_evaluator_forward_outcome_benchmark.py
 
     Run the generic backtest test class verbosely::
 
-        python3 -m unittest -v tests.test_setup_evaluator_backtest.SetupEvaluatorBacktestTest
+        python3 -m unittest -v tests.test_setup_evaluator_forward_outcome_benchmark.SetupEvaluatorForwardOutcomeBenchmarkTest
 """
 
 import datetime as dt
@@ -28,14 +28,14 @@ from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = ROOT / "scripts/backtests/setup_evaluator_backtest.py"
-SPEC = importlib.util.spec_from_file_location("setup_evaluator_backtest", MODULE_PATH)
+MODULE_PATH = ROOT / "scripts/backtests/setup_evaluator_forward_outcome_benchmark.py"
+SPEC = importlib.util.spec_from_file_location("setup_evaluator_forward_outcome_benchmark", MODULE_PATH)
 backtest = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = backtest
 SPEC.loader.exec_module(backtest)
 
 
-class SetupEvaluatorBacktestTest(unittest.TestCase):
+class SetupEvaluatorForwardOutcomeBenchmarkTest(unittest.TestCase):
     def prediction(self) -> dict:
         return {
             "prediction_id": "2026-01-01|example|TEST",
@@ -108,14 +108,14 @@ class SetupEvaluatorBacktestTest(unittest.TestCase):
             stop_loss=95.0,
             take_profit=110.0,
         )
-        config = backtest.BacktestConfig(
+        config = backtest.BenchmarkConfig(
             tickers=["TEST"],
             start_date=dt.date(2026, 1, 1),
             end_date=dt.date(2026, 1, 31),
             frequency="weekly",
             horizons=[5],
             benchmark_ticker="SPY",
-            output_dir=Path("/tmp/setup-signal-backtest"),
+            output_dir=Path("/tmp/setup-evaluator-forward-outcome-benchmark"),
             min_setup_score=80.0,
             min_evidence_score=80.0,
         )
@@ -307,14 +307,14 @@ class SetupEvaluatorBacktestTest(unittest.TestCase):
                 {"date": "2026-01-02", "adj_close": "45", "adj_high": "46", "adj_low": "44"},
             ],
         }
-        config = backtest.BacktestConfig(
+        config = backtest.BenchmarkConfig(
             tickers=["TEST", "WEAK"],
             start_date=dt.date(2026, 1, 1),
             end_date=dt.date(2026, 1, 31),
             frequency="daily",
             horizons=[1],
             benchmark_ticker="SPY",
-            output_dir=Path("/tmp/setup-signal-backtest"),
+            output_dir=Path("/tmp/setup-evaluator-forward-outcome-benchmark"),
         )
 
         outcomes = backtest.build_outcomes(
@@ -335,14 +335,14 @@ class SetupEvaluatorBacktestTest(unittest.TestCase):
 
     def test_build_execution_report_contains_scenario_summary_insights_and_next_steps(self) -> None:
         adapter = SimpleNamespace(evaluator_id="example-evaluator")
-        config = backtest.BacktestConfig(
+        config = backtest.BenchmarkConfig(
             tickers=["TEST", "WEAK"],
             start_date=dt.date(2026, 1, 1),
             end_date=dt.date(2026, 1, 31),
             frequency="weekly",
             horizons=[5, 10],
             benchmark_ticker="SPY",
-            output_dir=Path("/tmp/setup-signal-backtest"),
+            output_dir=Path("/tmp/setup-evaluator-forward-outcome-benchmark"),
             min_setup_score=80.0,
             scenario_slug="Example Scenario",
             run_timestamp="20260711-143022Z",
@@ -396,7 +396,7 @@ class SetupEvaluatorBacktestTest(unittest.TestCase):
 
         report = backtest.build_execution_report(adapter, config, run_config, predictions, [], summaries)
 
-        self.assertIn("# Setup Signal Backtest Execution Report: example-evaluator", report)
+        self.assertIn("# Setup-Evaluator Forward-Outcome Benchmark Report: example-evaluator", report)
         self.assertIn("## Scenario", report)
         self.assertIn("## Configuration", report)
         self.assertIn("| Scenario | example-scenario |", report)
@@ -446,7 +446,7 @@ class SetupEvaluatorBacktestTest(unittest.TestCase):
 
     def test_run_config_hash_is_stable_and_ignores_output_directory(self) -> None:
         adapter_id = "example-evaluator"
-        config = backtest.BacktestConfig(
+        config = backtest.BenchmarkConfig(
             tickers=["TEST", "WEAK"],
             start_date=dt.date(2026, 1, 1),
             end_date=dt.date(2026, 1, 31),
@@ -468,7 +468,7 @@ class SetupEvaluatorBacktestTest(unittest.TestCase):
         self.assertNotEqual(backtest.run_config_hash(adapter_id, config), changed_run_hash)
 
     def test_config_with_run_output_dir_uses_timestamp_evaluator_scenario_and_hash(self) -> None:
-        config = backtest.BacktestConfig(
+        config = backtest.BenchmarkConfig(
             tickers=["TEST"],
             start_date=dt.date(2026, 1, 1),
             end_date=dt.date(2026, 1, 31),

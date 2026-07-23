@@ -22,15 +22,30 @@ Required inputs:
 | Requirement | Source |
 | --- | --- |
 | [Strategy definition](../../strategies/README.md) | `Strategy:` link in the spec. |
-| Test hypothesis | `Edge Being Tested` section. |
-| Run profiles | Universe, [selection model](../../stages/OPERATIONS.md#selection-and-selection-models), [trigger](../../stages/OPERATIONS.md#trigger), [funding](../../stages/OPERATIONS.md#funding-profiles), [portfolio policy](../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies), execution model, and [evaluation](../../stages/OPERATIONS.md#evaluation-plans) sections. |
+| Configuration intent | `Configuration Intent` section. |
+| Scenario bindings | Universe, [selection model](../../stages/OPERATIONS.md#selection-and-selection-models), [trigger](../../stages/OPERATIONS.md#trigger), [funding](../../stages/OPERATIONS.md#funding-profiles), [portfolio policy](../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies), execution model, and [evaluation](../../stages/OPERATIONS.md#evaluation-plans) sections. |
 | Baselines | `Benchmarks` section. |
 
 Strategy backtests orient final results around the complete strategy
 configuration. All strategies follow the canonical pipeline in
 [`strategies/README.md`](../../strategies/README.md); backtests bind its concrete
-profiles without referencing a separate flow file. The root driver can resolve and validate these specs, but a
-portfolio-level simulation engine is not registered yet.
+stage descriptors and configuration profiles without referencing a separate
+flow file. Research hypotheses,
+success criteria, run indexes, and decisions live under
+[`experiments/`](../../experiments/README.md). The root driver resolves and
+validates every strategy specification. It also executes the registered
+`technical-resistance-runner/tc-001-random-50-universe-1-monthly` and
+`technical-resistance-runner/tc-002-random-50-universe-1-sma50-exit`
+portfolio backtests, plus the
+`technical-resistance-runner/tc-003-pre-2014-sma50-robustness` two-window
+comparison; other strategy specifications remain validate-only until compatible
+drivers are registered.
+
+The registered
+`regime-gated-technical-resistance/tc-001-eight-dataset-robustness` driver runs
+the frozen universe-1 candidate configuration with its declared SMA200 gate, 15%
+stop, and fixed research costs. The remaining seven replications are preserved
+as separately labeled artifacts.
 
 ## Isolated Component Backtests
 
@@ -44,7 +59,7 @@ Required inputs:
 
 | Requirement | Source |
 | --- | --- |
-| Component type/profile | `Component Under Test` section. |
+| Component type/descriptor | `Component Under Test` or `Applicable Component Type` section. |
 | Backtest type | `Backtest Type` = `isolated component backtest`. |
 | Direct contract | `Direct Input/Output Contract` section. |
 | Metrics and outputs | `Metrics` and `Output Location` sections. |
@@ -58,9 +73,9 @@ scripts/backtests/setup_evaluator_adapters/
 
 Each adapter should translate its evaluator's native output into the generic
 `SetupSignal` interface and delegate execution to
-`scripts/backtests/setup_evaluator_backtest.py`.
+`scripts/backtests/setup_evaluator_forward_outcome_benchmark.py`.
 
-Each setup-signal run writes machine-readable CSV artifacts plus
+Each forward-outcome benchmark run writes machine-readable CSV artifacts plus
 `predictions.html`, a human-readable prediction table with inline setup charts,
 and `execution-report.md`, a human-readable execution report that summarizes
 the scenario, configuration, key results, generated insights, and next
@@ -71,7 +86,7 @@ visualizations share the same chart logic.
 When `--output-dir` is omitted, the driver creates a run directory under:
 
 ```text
-artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/
+artifacts/stock/backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark/
 ```
 
 Run directories use:
@@ -88,7 +103,7 @@ Example:
 
 ```sh
 python3 scripts/backtests/run_backtest.py \
-  backtests/components/setup-evaluators/setup-signal-backtest.md \
+  backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md \
   --evaluator lower-risk-swing-entry \
   -- \
   --tickers NVDA TLN ECL NEE SO AMZN XEL EXC \

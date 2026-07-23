@@ -1,193 +1,167 @@
-# Lower-Risk Swing Entry Evaluator
+# Lower-Risk Swing Entry
 
-## Role
+## ID
 
-You are a swing-trading research assistant.
+`lower-risk-swing-entry`
 
-The user will provide a list of tickers. Return a lower-risk entry swing setup
-table with one row per ticker.
+## Stage Type
 
-## Goal
+`setup-evaluator`
 
-Find lower-risk swing entries, not momentum-chasing entries. Sort the tickers so
-the setups with the strongest deterministic setup scores appear first.
+## Purpose
 
-Use fresh [market data](../OPERATIONS.md#market-data-resolution). Do not guess or fabricate prices, moving averages,
-analyst targets, analyst counts, or rating trends. If a required data point is
-unavailable, write `N/A` and lower the evidence score.
+Classify and rank one or more stock-date setups for lower-risk swing entry
+quality. The evaluator favors constructive entries near support over extended
+momentum entries and may construct entry, invalidation, stop, target, and
+reward/risk levels. It does not select portfolio weights, create orders, or
+format a watchlist report.
 
-## Source of Truth
+## Input Contract
 
-The implementation source of truth is:
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `as_of` | trading date | Yes | [Evaluation](../OPERATIONS.md#evaluation-plans) cutoff, represented by the latest accepted `feature_rows` date in the current Python API. |
+| `ticker` | ticker ID | Yes | Instrument being evaluated. |
+| `feature_rows` | ordered daily feature records | Yes | Point-in-time adjusted price, moving-average, indicator, and volume history through `as_of`. |
+| `analyst_support` | evaluator classification | No | Point-in-time analyst-support classification supplied by the caller. Defaults to missing/weak. |
+| `analyst_data_quality` | evaluator classification | No | Completeness of the supplied analyst evidence. Defaults to missing. |
+| `recency_gap_risk` | evaluator classification | No | Known staleness or event-gap condition at `as_of`. Defaults to clean. |
 
-```text
-stages/setup-evaluators/lower_risk_swing_entry.py
-```
+Callers normally supply raw feature rows to `construct_setup(...)`. Direct
+construction of normalized `LowerRiskSwingEntryInputs` is supported only when
+the caller uses the same classifications as the implementation.
 
-Use that module to construct, score, and sort setups:
+## Output Contract
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `as_of` | trading date | Yes | Latest accepted feature-row date, exposed as `latest_date`. |
+| `ticker` | ticker ID | Yes | Normalized uppercase ticker. |
+| `classification` | setup-status enum | Yes | Deterministic setup status. |
+| `scores` | two bounded scores with named breakdowns | Yes | `setup_score` measures attractiveness; `evidence_score` measures data reliability. |
+| `trade_plan` | structured levels or `None` fields | Yes | Current price, setup type, support, resistance, buy limit, trailing stop, invalidation, take profit, and reward/risk. |
+| `reasons` | ordered reason-code strings | Yes | Status and component-score codes explaining the classification. |
+
+The setup-score components are:
+
+| Code | Meaning | Range |
+| --- | --- | ---: |
+| `EP` | Entry proximity | `0..25` |
+| `SQ` | Support quality | `0..20` |
+| `RR` | Reward/risk quality | `0..20` |
+| `TS` | Trend structure | `0..15` |
+| `AS` | Analyst support | `0..10` |
+| `ER` | Extension risk | `0..10` |
+
+The evidence-score components are:
+
+| Code | Meaning | Range |
+| --- | --- | ---: |
+| `PD` | Price-data quality | `0..20` |
+| `SR` | Support/resistance objectivity | `0..15` |
+| `MA` | Indicator completeness | `0..15` |
+| `AD` | Analyst-data completeness | `0..20` |
+| `TM` | Trade-math consistency | `0..20` |
+| `RG` | Recency or event-gap quality | `0..10` |
+
+Status values are `Ready / near buy zone`, `Wait for pullback`,
+`Watch breakout retest`, `Too extended`, `Weak analyst support`, and
+`Avoid for now`. Their exact priority and thresholds are executable behavior,
+not duplicated in this descriptor.
+
+## Behavior
+
+The evaluator deterministically:
+
+1. removes rows without a usable adjusted close and orders the remaining rows
+   by date;
+2. derives constructive support, resistance, buy-limit, stop, invalidation,
+   target, and reward/risk values;
+3. normalizes market and optional external evidence into component
+   classifications;
+4. calculates setup-attractiveness and evidence-quality scores;
+5. assigns one setup status and ordered reason codes; and
+6. sorts batches by setup score, evidence score, and reward/risk, descending.
+
+All formulas, thresholds, constants, status priority, and tie-breaking code live
+only in the executable implementation.
+
+## Parameters
+
+The descriptor exposes the buy-limit and ready-status thresholds used by
+component experiments. Risk-construction settings remain fixed:
+
+| Name | Type | Required | Default | Constraints | Description |
+| --- | --- | --- | --- | --- | --- |
+| `buy_limit_offset` | decimal | No | `0` | `[0,1)` | Places near-support buy limits below support by this fraction; zero preserves the current-price baseline. |
+| `entry_score_threshold` | integer | No | `18` | `0..25` | Minimum entry-proximity component required for `Ready / near buy zone`. |
+| `atr_window` | integer trading days | No | `14` | Positive; fixed by descriptor | ATR lookback used in risk construction. |
+| `initial_invalidation_atr_multiple` | decimal | No | `0.8` | Positive; fixed by descriptor | ATR buffer below support for initial invalidation. |
+| `fallback_invalidation_pct` | decimal | No | `0.015` | `[0,1)`; fixed by descriptor | Support-relative invalidation buffer when ATR is unavailable. |
+| `trailing_stop_atr_multiple` | decimal | No | `2.0` | Positive; fixed by descriptor | ATR multiple used for the trailing-stop distance. |
+| `min_trailing_stop_pct` | decimal | No | `0.045` | `[0,1)`; fixed by descriptor | Lower bound on trailing-stop distance. |
+| `max_trailing_stop_pct` | decimal | No | `0.12` | Greater than the minimum; fixed by descriptor | Upper bound on trailing-stop distance. |
+
+Changing a fixed value requires changing the descriptor and implementation; an
+experiment may override only the two declared runtime parameters.
+
+## Data Requirements
+
+- Daily adjusted OHLCV and derived feature rows through `as_of`.
+- Sufficient actual observations for the moving averages, ATR, recent support,
+  and trailing-high calculations used by the implementation.
+- Optional analyst evidence with source timestamps when analyst support is
+  supplied.
+- No implicit forward-filling of blank or missing OHLCV rows.
+
+## Point-in-Time Rules
+
+- `feature_rows` must contain no row after `as_of`.
+- Rolling levels and indicators use only accepted rows through the cutoff.
+- External evidence must have been published and available by `as_of`.
+- Future prices, later revisions, and future event outcomes are prohibited.
+- A backtest must keep warm-up observations outside reported evaluation
+  metrics.
+
+## Failure Behavior
+
+- No usable adjusted-close rows produce an empty setup with missing trade-plan
+  levels rather than a fabricated price.
+- Missing analyst evidence remains missing and lowers evidence quality; it is
+  never inferred.
+- Missing support, resistance, indicators, or trade math lowers the relevant
+  component and may produce `Avoid for now`.
+- Sorting remains deterministic when values are missing; missing reward/risk is
+  ordered below numeric reward/risk.
+- Invalid caller-supplied normalized classifications are programming errors and
+  must not be coerced into favorable values.
+
+## Benchmark Contract
+
+Use identical ticker-date point-in-time fixtures and compare calibration,
+score-bucket monotonicity, forward returns, maximum adverse/favorable
+excursion, trade-plan reachability, missing-data behavior, and deterministic
+ordering. The reusable protocol is
+[`setup-evaluator-forward-outcome-benchmark`](../../backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md).
+
+Full-strategy effects such as cash use, overlapping positions, turnover, and
+[execution](../OPERATIONS.md#execution-and-execution-models) costs require a
+configured strategy experiment and are not evidence of the evaluator's
+isolated contract.
+
+## Implementation
+
+Source:
+[`lower_risk_swing_entry.py`](lower_risk_swing_entry.py)
+
+Public entry points:
 
 ```python
-LowerRiskSwingEntryEvaluator.construct_setup(ticker, feature_rows)
-LowerRiskSwingEntryEvaluator.score_setups(list_of_setups)
+LowerRiskSwingEntryEvaluator.construct_setup(ticker, feature_rows, ...)
+LowerRiskSwingEntryEvaluator.evaluate(normalized_inputs)
+LowerRiskSwingEntryEvaluator.score_setups(constructed_setups)
 ```
 
-Use `construct_setup(ticker, feature_rows)` first so support, resistance, buy
-limit, invalidation level, take-profit, and reward/risk are generated
-consistently. Use `score_setups(list_of_setups)` when producing the output table;
-it keeps setup fields aligned with the scored [evaluation](../OPERATIONS.md#evaluation-plans) and sorts by
-`setup_score`, `evidence_score`, and reward/risk.
-
-See `stages/setup-evaluators/IMPLEMENTATION.md` for the implementation contract. Do not
-copy formulas or thresholds into this prompt; keep them in the Python evaluator
-to avoid drift.
-
-## Human Review Inputs
-
-For each ticker, evaluate and report:
-
-- Current price
-- Setup type
-- Key support and resistance
-- Analyst support, if available from reliable current sources
-- Buy limit order
-- Trailing stop and initial invalidation level
-- Take-profit price
-- Reward/risk ratio
-- Setup status
-- Setup-score and evidence-score breakdowns from the evaluator
-
-For analyst targets, analyst counts, rating changes, target revisions,
-fundamentals, earnings quality, or institutional sponsorship signals, use
-reliable current sources when available. If unavailable, write `N/A`; do not
-fabricate values.
-
-## Score Components
-
-The evaluator produces two separate 0-100 values:
-
-- `Setup Score`: setup attractiveness.
-- `Evidence Score`: data completeness and reliability.
-
-`Setup Score` is the evaluator's `setup_score`, calculated as:
-
-```text
-EP + SQ + RR + TS + AS + ER
-```
-
-`Setup Score Breakdown` must use the evaluator-defined component keys:
-
-```text
-SS=<0-100>; EP=<0-25>; SQ=<0-20>; RR=<0-20>; TS=<0-15>; AS=<0-10>; ER=<0-10>
-```
-
-| Key | Meaning | Max |
-| --- | --- | --- |
-| `SS` | Total setup score / setup attractiveness | `100` |
-| `EP` | Entry proximity to intended buy limit | `25` |
-| `SQ` | Support quality | `20` |
-| `RR` | Reward/risk quality | `20` |
-| `TS` | Trend structure | `15` |
-| `AS` | Analyst support | `10` |
-| `ER` | Extension risk | `10` |
-
-`Evidence Score` is calculated as:
-
-```text
-PD + SR + MA + AD + TM + RG
-```
-
-`Evidence Score Breakdown` must use the evaluator-defined component keys:
-
-```text
-ES=<0-100>; PD=<0-20>; SR=<0-15>; MA=<0-15>; AD=<0-20>; TM=<0-20>; RG=<0-10>
-```
-
-| Key | Meaning | Max |
-| --- | --- | --- |
-| `ES` | Total evidence score / data reliability | `100` |
-| `PD` | Price data quality | `20` |
-| `SR` | Support/resistance objectivity | `15` |
-| `MA` | Moving-average and indicator completeness | `15` |
-| `AD` | Analyst data completeness | `20` |
-| `TM` | Trade-math consistency | `20` |
-| `RG` | Recency or event-gap risk | `10` |
-
-The exact scoring thresholds for each component live in
-`stages/setup-evaluators/lower_risk_swing_entry.py`.
-
-Use the evaluator output for `Setup Status`.
-
-## Setup Status
-
-`Setup Status` is a deterministic label produced by the evaluator from the
-normalized setup inputs, setup-score breakdown, and evidence-score breakdown. Do not
-override it manually in watchlist reviews.
-
-| Status | Meaning |
-| ------ | ------- |
-| `Ready / near buy zone` | Price is close to the intended buy limit, support quality is strong, and reward/risk is acceptable. This is the most actionable pullback setup. |
-| `Wait for pullback` | A usable support area exists, but price is not close enough to the intended lower-risk entry. The setup may become actionable only after a pullback. |
-| `Watch breakout retest` | Trend structure is constructive, but the setup is not currently a near-support pullback. Watch for a breakout and later retest before treating it as lower-risk. |
-| `Too extended` | Extension risk is severe. The ticker may still be strong, but the current entry is considered momentum-chasing rather than lower-risk. |
-| `Weak analyst support` | Analyst data is available and the analyst-support component scores zero. This does not automatically mean the chart is bad, but it weakens the setup score. |
-| `Avoid for now` | Data quality is too low, trade math is missing or poor, reward/risk is unacceptable, or no constructive setup condition is met. |
-
-Status assignment follows this priority order:
-
-1. Avoid incomplete or low-evidence setups.
-2. Flag severe extension before considering entry quality.
-3. Flag weak analyst support when analyst data is available.
-4. Mark strong near-entry pullbacks as ready.
-5. Reject setups with unusable reward/risk.
-6. Mark support setups that need a better entry as wait-for-pullback.
-7. Mark constructive trend setups without a pullback entry as breakout-retest watches.
-8. Avoid anything that does not fit the rules above.
-
-## Output Format
-
-Return only a simple Markdown table followed by the three short notes specified
-below.
-
-Columns:
-
-| Ticker | Current Price | Setup Type | Key Support | Key Resistance | Analyst Support | Buy Limit Order | Trailing Stop | Take Profit | Reward/Risk | Setup Status | Setup Score | Setup Score Breakdown | Evidence Score | Evidence Score Breakdown |
-| ------ | ------------- | ---------- | ----------- | -------------- | --------------- | --------------- | ------------- | ----------- | ----------- | ------------ | ----------- | --------------------- | -------------- | ------------------------ |
-
-For `Buy Limit Order`, write the exact instruction, for example:
-
-```text
-Place buy limit at $123.40
-```
-
-For `Trailing Stop`, write the exact instruction, for example:
-
-```text
-Use $6.20 trailing stop / 5.0%; initial invalidation below $117.10
-```
-
-For `Take Profit`, write the exact instruction, for example:
-
-```text
-Take profit at $142.80
-```
-
-For `Setup Score Breakdown`, use only the fixed component format, for example:
-
-```text
-SS=84; EP=22; SQ=20; RR=17; TS=15; AS=7; ER=3
-```
-
-For `Evidence Score Breakdown`, use only the fixed component format, for example:
-
-```text
-ES=82; PD=20; SR=15; MA=15; AD=12; TM=20; RG=0
-```
-
-After the table, add only three short notes:
-
-1. Best setup now
-2. Best wait-for-pullback setup
-3. Highest-risk name despite upside
-
-Assume this is decision-support research, not financial advice. Use concrete
-numbers, but clearly mark low-evidence rows when data is incomplete.
+Use `construct_setup(...)` before `score_setups(...)` for normal operation.
+The Python module and its docstrings are the only source of formulas,
+thresholds, constants, and status-assignment priority.

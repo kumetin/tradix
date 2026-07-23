@@ -34,7 +34,6 @@ former `harnessed component backtest` category is intentionally unsupported.
 | --- | --- | --- |
 | [Selection model](../../stages/OPERATIONS.md#selection-and-selection-models) | Eligibility, scores, ranks, targets, and weights | Forward-outcome rank quality, hit rate, monotonicity, stability, and excess return versus same-date candidates |
 | [Setup evaluator](../../stages/OPERATIONS.md#setup-evaluators) | Setup classification, score, confidence, and trade-plan levels | Forward return, adverse/favorable excursion, calibration, monotonicity, and reachability |
-| [Entry model](../../stages/OPERATIONS.md#entry-decisions-and-entry-models) | Enter, wait, or expire decisions and proposed entry | Entry improvement, missed-entry rate, adverse/favorable excursion, and time to fill |
 | [Portfolio policy](../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies) | Orders or transitions from a dated target-intent and account-state tape | Turnover, cash drag, concentration, tracking error, drawdown, and policy constraint adherence |
 | [Execution model](../../stages/OPERATIONS.md#execution-and-execution-models) | Fills and cash/settlement ledger from an order and market tape | Fill accuracy, slippage, cost, rejection rate, and settlement correctness |
 | Dynamic [universe model](../../stages/OPERATIONS.md#universe-resolution-and-universe-models) | Dated candidate membership from a point-in-time security population | Mandate coverage, investability, membership stability, turnover, and opportunity coverage |
@@ -61,16 +60,33 @@ performance stages:
 
 | Section | Purpose |
 | --- | --- |
-| Component Under Test | Link the implementation and name its component type. |
+| Component binding | Use `Component Under Test` for a descriptor-specific spec or `Applicable Component Type` for a generic protocol. |
 | Question | State the component behavior being measured. |
 | Backtest Type | Declare `isolated component backtest`. |
 | Direct Input/Output Contract | Define the fixture inputs and attributable outputs. |
 | Variants | List parameter values or competing implementations. |
-| Evaluation Matrix | List evaluation windows, regimes, or dataset partitions. |
+| Evaluation Requirements | State required partition, warm-up, regime, and holdout properties; the experiment binds the concrete evaluation plan. |
 | Metrics | Define contract-level comparison metrics. |
 | Baselines | Declare simple output-level baselines or competing implementations. |
 | Interpretation Rules | Define evidence for reuse, rejection, or conditional use. |
 | Output Location | Point to `artifacts/stock/backtests/components/`. |
+
+## Relationship to Experiments
+
+A component backtest is a reusable measurement protocol, not a run registry.
+It may either target one named stage descriptor or accept any implementation
+of a declared component type. State which form it uses:
+
+- Use `Component Under Test` when the spec is intentionally tied to one stage
+  descriptor.
+- Use `Applicable Component Type` when experiments supply the concrete
+  stage descriptor.
+
+Concrete research grids, lifecycle status, artifact run links, aggregate
+results, and decisions belong in [`experiments/`](../../experiments/README.md).
+An experiment binds a stage descriptor to this spec and an
+[evaluation plan](../../stages/OPERATIONS.md#evaluation-plans). Do not add
+completed-run references to the reusable backtest spec.
 
 Generated artifacts belong under:
 

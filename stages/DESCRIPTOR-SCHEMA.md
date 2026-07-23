@@ -131,7 +131,7 @@ Universe descriptors declare only the query behavior needed by their mandate:
 | Missing-data policy | Exclude, fail, or explicitly report unknown values for every field family used. |
 | Refresh rule | When membership is recomputed; this does not replace the runtime `as_of` input. |
 
-The profile must be translatable into predicates and deterministic ordering over
+The descriptor must be translatable into predicates and deterministic ordering over
 the declared point-in-time inputs. Free-form concepts such as `large cap`,
 `liquid`, or `US stock` are invalid unless reduced to concrete fields,
 operators, thresholds, and classification values.
@@ -284,9 +284,3 @@ reused. A numeric zero is a valid fixed model, not an omitted setting.
 Independent benchmarks replay identical order/market tapes and compare fill
 accuracy, implementation shortfall, costs, rejection rate, and settlement-ledger
 correctness.
-
-## Future Stage Types
-
-An [entry model](OPERATIONS.md#entry-decisions-and-entry-models) must first add its family schema here, including direct inputs,
-outputs, configuration, failure behavior, and independent metrics. Creating a
-directory alone does not register a new reusable stage type.

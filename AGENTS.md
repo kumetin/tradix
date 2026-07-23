@@ -99,7 +99,8 @@ parameters.
 The [canonical strategy decision pipeline](strategies/README.md#canonical-strategy-decision-pipeline) is
 shared by backtests, paper-trading runners, and future live bots. Individual
 strategy files describe strategy-owned rules and their pipeline placement.
-Concrete stage and run profiles belong to each configured runner or backtest;
+Concrete stage instances and configuration profiles belong to each configured
+runner or backtest;
 do not create per-strategy `.flow.md` files that duplicate the canonical
 pipeline.
 
@@ -107,15 +108,18 @@ All backtest specifications live under `backtests/`.
 
 Configured strategy backtests live under `backtests/strategies/`. A strategy
 backtest file should select a strategy thesis, bind the concrete stages and
-configuration required to run it, set genuine strategy parameters, and state
-the thesis prediction or robustness dimension being tested. It should also say
-what varies and what remains controlled. Keep
+configuration required to run it, and set genuine strategy parameters. It is
+an executable scenario, not an experiment record: hypotheses, success criteria,
+run indexes, results, findings, and decisions belong under `experiments/`.
+Scenario files may state configuration intent and their configuration delta
+from another scenario, but experiments must reference those scenarios instead
+of copying their bindings. Keep
 [trigger](stages/OPERATIONS.md#trigger), fallback [selection](stages/OPERATIONS.md#selection-and-selection-models), [funding](stages/OPERATIONS.md#funding-profiles), portfolio-policy, [execution](stages/OPERATIONS.md#execution-and-execution-models), accounting,
 and evaluation settings in separate sections instead of labeling all of them as
 strategy parameters.
 
 Component-level backtests live under `backtests/components/`. Use this layer
-when testing one reusable component profile, such as a [setup evaluator](stages/OPERATIONS.md#setup-evaluators) or
+when testing one reusable stage descriptor, such as a [setup evaluator](stages/OPERATIONS.md#setup-evaluators) or
 selection model, through its direct input/output contract. A reusable component
 must be benchmarkable against itself, a baseline, or another implementation
 without running a complete strategy. If a comparison requires a full strategy
@@ -128,7 +132,7 @@ distinguishes configuration and services from reusable performance components:
 ```text
 configuration: trigger, static universe, market data
 -> selection model
--> entry model or strategy-owned entry rule
+-> optional setup evaluator
 -> portfolio policy
 -> execution model
 run configuration: funding, evaluation plan, benchmarks
@@ -171,7 +175,7 @@ or `configuration/evaluations/`.
 Component test specifications live under `tests/`. Prefer behavioral component
 tests for `stages/selection-models/`, `stages/portfolio-policies/`, and
 `stages/execution-models/`.
-Use static validation checks for mostly declarative profiles such as
+Use static validation checks for mostly declarative configuration profiles such as
 `configuration/universes/`, `configuration/funding/`, triggers, evaluations,
 and backtest link
 consistency.
@@ -180,11 +184,13 @@ Repository-specific test helper:
 
 - A static validation script exists at `tests/validation/validate_static_profiles.py`.
   - Run it with the repository Python interpreter: `python3 tests/validation/validate_static_profiles.py`.
-  - Use this before running higher-level experiments to catch malformed profile files.
+  - Use this before running higher-level experiments to catch malformed
+    descriptors, configuration profiles, and scenario bindings.
   - The codebase contains compiled Python artifacts (`__pycache__/` with cpython-37.pyc),
     so prefer Python 3.7+ when running the included scripts.
 
-Do not create behavioral tests for every static profile by default. Add tests
+Do not create behavioral tests for every static configuration profile by
+default. Add tests
 where the component has logic that can change results silently, such as
 look-ahead-prone selection rules, sell/rebalance behavior, or cash settlement
 timing.

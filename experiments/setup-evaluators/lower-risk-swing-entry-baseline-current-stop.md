@@ -1,6 +1,6 @@
 # Lower-Risk Swing Entry Baseline: Current Stop
 
-## Experiment Status
+## Status
 
 `rejected_for_promotion`
 
@@ -13,25 +13,26 @@ iterations can be compared against it.
 
 `lower-risk-swing-entry-baseline-current-stop`
 
-## Component Under Test
+## Reference Configuration
 
 - [Setup evaluator](../../stages/OPERATIONS.md#setup-evaluators): [`lower-risk-swing-entry`](../../stages/setup-evaluators/lower-risk-swing-entry.md)
-- Backtest spec: [`setup-signal-backtest`](../../backtests/components/setup-evaluators/setup-signal-backtest.md)
+- Benchmark protocol: [`setup-evaluator-forward-outcome-benchmark`](../../backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md)
 - [Evaluation plan](../../stages/OPERATIONS.md#evaluation-plans): [`lower-risk-swing-entry-iteration-plan`](../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 
-## Evaluation Window
+## Hypothesis
+
+The evaluator's actionable signals and generated current stop model produce
+durable forward outcomes, with stronger score gates improving results relative
+to `SPY` and equal-weight universe exposure.
+
+## Controlled Settings
 
 | Setting | Value |
 | --- | --- |
-| Partition | Train/dev |
-| Start date | `2015-01-01` |
-| End date | `2019-12-31` |
-| Warm-up source | Local feature rows from `2014-01-01` onward where available |
+| Evaluation binding | Train/dev partition from the referenced evaluation plan |
 | Frequency | `weekly` |
-| Benchmark | `SPY` |
-| Secondary baseline | Equal-weight evaluated universe exposure |
 
-## Universe
+### Universe
 
 Smoke used the first five names from
 the removed random-20 fixture; exact tickers remain in the recorded artifact
@@ -41,7 +42,19 @@ Fast sweep used all 20 names from
 the removed random-20 fixture; exact tickers remain in the recorded artifact
 run configurations.
 
-## Artifact Runs
+## Declared Deltas
+
+The smoke run checked the core path. The fast sweep varied minimum setup score
+(`70`, `80`, `90`), minimum evidence score (`50`, `70`, `85`), and entry mode
+while holding the current stop model fixed.
+
+## Success Criteria
+
+No separate pre-registered thresholds were recorded for this historical
+baseline. Interpret it using the linked evaluation plan's promotion criteria;
+do not retrofit the observed results into new success thresholds.
+
+## Run Index
 
 | Run group | Scenario | Artifact directory |
 | --- | --- | --- |
@@ -59,7 +72,7 @@ run configurations.
 Each artifact directory contains `run_config.csv`, `predictions.csv`,
 `predictions.html`, `outcomes.csv`, `summary.csv`, and `execution-report.md`.
 
-## Fast-Sweep Summary
+## Results
 
 | Config | Entry mode | Entered total | Avg realized | Avg SPY | Avg equal-weight universe | Edge vs SPY | Edge vs universe | Avg stop rate |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -101,7 +114,7 @@ for the current evaluator.
 
 Use this experiment as the baseline for the next train/dev iteration.
 
-## Next Experiment
+## Follow-up
 
 Keep the same train/dev period and frozen 20-ticker historical fixture recorded
 in the artifact run configurations, but introduce explicit stop-model variants

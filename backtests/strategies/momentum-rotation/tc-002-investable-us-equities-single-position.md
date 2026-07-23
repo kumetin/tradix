@@ -2,9 +2,9 @@
 
 Strategy: [Momentum Rotation](../../../strategies/momentum-rotation.md)
 
-## Edge Being Tested
+## Configuration Intent
 
-### Thesis Claim Under Test
+### Strategy Behavior Implemented
 
 The intermediate-momentum continuation claim should survive outside an index
 membership set when applied to a broad, point-in-time investable US common-stock
@@ -27,7 +27,7 @@ single-position rotation. Rotation, settlement delay, and concentration affect
 realized portfolio results, but they are not substitutes for measuring the
 selection model's same-date forward relative performance.
 
-### Evidence Against the Claim
+### Evaluation Sensitivities
 
 The thesis is weakened if rank quality and top-selection excess return disappear
 in the broader universe, if results depend on a few securities or one regime,

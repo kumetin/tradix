@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a setup-signal backtest for lower-risk swing-entry signals.
+"""Run a forward-outcome benchmark for lower-risk swing-entry signals.
 
 Parameters:
     Required CLI options select tickers and evaluation dates. Optional settings
@@ -7,12 +7,12 @@ Parameters:
     execution mode, scenario label, and output directory.
 External sources:
     Local precomputed feature CSVs plus the lower-risk evaluator and generic
-    backtest engine modules in this repository.
+    benchmark runner modules in this repository.
 Side effects:
     Reads point-in-time feature history, creates an artifact run directory,
     writes CSV/Markdown/HTML reports and charts, and prints run results.
 Examples:
-    Run a weekly two-ticker backtest::
+    Run a weekly two-ticker benchmark::
 
         python3 scripts/backtests/setup_evaluator_adapters/lower_risk_swing_entry.py --tickers NVDA AMD --start-date 2025-01-01 --end-date 2025-12-31
 
@@ -33,20 +33,20 @@ from typing import Dict, List, Sequence
 
 ROOT = Path(__file__).resolve().parents[3]
 BACKTEST_SCRIPT_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT_ROOT = ROOT / "artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest"
+DEFAULT_OUTPUT_ROOT = ROOT / "artifacts/stock/backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark"
 EVALUATOR_PATH = ROOT / "stages/setup-evaluators/lower_risk_swing_entry.py"
 
 sys.path.insert(0, str(BACKTEST_SCRIPT_DIR))
-from setup_evaluator_backtest import (  # noqa: E402
+from setup_evaluator_forward_outcome_benchmark import (  # noqa: E402
     ACTION_AVOID,
     ACTION_BUY,
     ACTION_WAIT,
-    BacktestConfig,
+    BenchmarkConfig,
     SetupEvaluatorAdapter,
     SetupSignal,
     config_with_run_output_dir,
     parse_horizons,
-    run_setup_evaluator_backtest,
+    run_setup_evaluator_benchmark,
 )
 
 
@@ -98,10 +98,21 @@ class LowerRiskSwingEntryAdapter(SetupEvaluatorAdapter):
     )
     summary_group_fields = ("action", "setup_score", "evidence_score", "setup_status")
 
-    def __init__(self, stop_model: str = STOP_MODEL_CURRENT) -> None:
+    def __init__(
+        self,
+        stop_model: str = STOP_MODEL_CURRENT,
+        buy_limit_offset: float = 0.0,
+        entry_score_threshold: int = 18,
+    ) -> None:
         if stop_model not in STOP_MODELS:
             raise ValueError(f"Unsupported stop model: {stop_model}")
+        if buy_limit_offset < 0 or buy_limit_offset >= 1:
+            raise ValueError("buy-limit offset must be in [0, 1)")
+        if entry_score_threshold < 0 or entry_score_threshold > 25:
+            raise ValueError("entry-score threshold must be in [0, 25]")
         self.stop_model = stop_model
+        self.buy_limit_offset = buy_limit_offset
+        self.entry_score_threshold = entry_score_threshold
 
     def evaluate_batch(
         self,
@@ -110,12 +121,19 @@ class LowerRiskSwingEntryAdapter(SetupEvaluatorAdapter):
     ) -> List[SetupSignal]:
         rows_by_ticker = {ticker.upper(): rows for ticker, rows in point_in_time_rows_by_ticker.items()}
         setups = [
-            LowerRiskSwingEntryEvaluator.construct_setup(ticker, rows)
+            LowerRiskSwingEntryEvaluator.construct_setup(
+                ticker,
+                rows,
+                buy_limit_offset=self.buy_limit_offset,
+            )
             for ticker, rows in rows_by_ticker.items()
         ]
         return [
             self.to_signal(scored, rows_by_ticker.get(scored.setup.ticker, []))
-            for scored in LowerRiskSwingEntryEvaluator.score_setups(setups)
+            for scored in LowerRiskSwingEntryEvaluator.score_setups(
+                setups,
+                self.entry_score_threshold,
+            )
         ]
 
     def to_signal(self, scored: object, feature_rows: Sequence[Dict[str, str]] = ()) -> SetupSignal:
@@ -216,8 +234,12 @@ def stop_loss_for_model(setup: object, feature_rows: Sequence[Dict[str, str]], s
 
 def main(argv: Sequence[str] = None) -> int:
     args = parse_args(argv)
-    adapter = LowerRiskSwingEntryAdapter(stop_model=args.stop_model)
-    config = BacktestConfig(
+    adapter = LowerRiskSwingEntryAdapter(
+        stop_model=args.stop_model,
+        buy_limit_offset=args.buy_limit_offset,
+        entry_score_threshold=args.entry_score_threshold,
+    )
+    config = BenchmarkConfig(
         tickers=[ticker.upper() for ticker in args.tickers],
         start_date=dt.date.fromisoformat(args.start_date),
         end_date=dt.date.fromisoformat(args.end_date),
@@ -227,18 +249,22 @@ def main(argv: Sequence[str] = None) -> int:
         output_dir=args.output_dir or DEFAULT_OUTPUT_ROOT,
         min_setup_score=args.min_setup_score,
         min_evidence_score=args.min_evidence_score,
-        run_parameters={"stop_model": args.stop_model},
+        run_parameters={
+            "stop_model": args.stop_model,
+            "buy_limit_offset": args.buy_limit_offset,
+            "entry_score_threshold": args.entry_score_threshold,
+        },
         scenario_slug=args.scenario_slug,
     )
     if args.output_dir is None:
         config = config_with_run_output_dir(adapter.evaluator_id, config, DEFAULT_OUTPUT_ROOT)
-    run_setup_evaluator_backtest(adapter, config)
+    run_setup_evaluator_benchmark(adapter, config)
     return 0
 
 
 def parse_args(argv: Sequence[str] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Backtest lower-risk swing-entry signals with the generic setup-signal engine."
+        description="Benchmark lower-risk swing-entry signals against forward outcomes."
     )
     parser.add_argument("--tickers", nargs="+", required=True)
     parser.add_argument("--start-date", required=True)
@@ -252,6 +278,8 @@ def parse_args(argv: Sequence[str] = None) -> argparse.Namespace:
     parser.add_argument("--horizons", nargs="+", default=["5", "10", "20", "40", "60"])
     parser.add_argument("--benchmark", default="SPY")
     parser.add_argument("--stop-model", choices=STOP_MODELS, default=STOP_MODEL_CURRENT)
+    parser.add_argument("--buy-limit-offset", type=float, default=0.0)
+    parser.add_argument("--entry-score-threshold", type=int, default=18)
     parser.add_argument("--min-setup-score", "--min-score", dest="min_setup_score", type=float, default=None)
     parser.add_argument(
         "--min-evidence-score",
@@ -277,7 +305,7 @@ def parse_args(argv: Sequence[str] = None) -> argparse.Namespace:
     parser.epilog = (
         "This script only adapts lower-risk swing-entry outputs into normalized "
         "SetupSignal records. Generic entry modes, first-exit P&L, summaries, "
-        "and CSV writing live in setup_evaluator_backtest.py."
+        "and CSV writing live in setup_evaluator_forward_outcome_benchmark.py."
     )
     return parser.parse_args(argv)
 

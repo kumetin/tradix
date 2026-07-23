@@ -20,6 +20,28 @@ When reviewing a watchlist:
 
 ## Review Output
 
+The setup evaluator emits structured values; this workflow owns their
+human-readable presentation.
+
+For the
+[`lower-risk-swing-entry`](../stages/setup-evaluators/lower-risk-swing-entry.md)
+evaluator, use one row per ticker with these columns:
+
+| Ticker | Current Price | Setup Type | Key Support | Key Resistance | Analyst Support | Buy Limit Order | Trailing Stop | Take Profit | Reward/Risk | Setup Status | Setup Score | Setup Score Breakdown | Evidence Score | Evidence Score Breakdown |
+| --- | ---: | --- | ---: | ---: | --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- |
+
+Render trade-plan fields as concrete instructions when values exist, for
+example `Place buy limit at $123.40`, `Use $6.20 trailing stop / 5.0%; initial
+invalidation below $117.10`, and `Take profit at $142.80`. Use `N/A` for
+unavailable values.
+
+Render the evaluator's score breakdowns in its stable component order:
+
+```text
+SS=84; EP=22; SQ=20; RR=17; TS=15; AS=7; ER=3
+ES=82; PD=20; SR=15; MA=15; AD=12; TM=20; RG=0
+```
+
 For watchlists with more than 10 unique tickers:
 
 1. Show only the top 10 ranked setups in the chat response.

@@ -38,7 +38,7 @@ python3 tests/validation/validate_static_profiles.py
 The canonical, run-mode-independent operation order is documented once in
 [the strategy concepts guide](../../strategies/README.md). Individual strategy
 files describe only strategy-owned rules and pipeline placement; backtests bind
-concrete profiles.
+concrete stage instances and configuration profiles.
 
 ## Evaluations
 
@@ -63,8 +63,8 @@ concrete profiles.
 
 | Check | Expected |
 | --- | --- |
-| Referenced files exist | Component under test, evaluation profiles, and baseline links resolve. |
-| Component under test declared | The spec names one component type and links one primary component profile. |
+| Referenced files exist | Stage descriptor, evaluation-plan, and baseline links resolve. |
+| Component under test declared | The spec names one component type and links one primary stage descriptor, or delegates the descriptor binding to an experiment. |
 | Direct contract declared | Fixture inputs and outputs attributable to the component are explicit. |
 | Evaluation and metrics declared | Evaluation matrix and metrics sections are present. |
 | Output location declared | Generated artifacts are written under `artifacts/stock/backtests/components/`. |

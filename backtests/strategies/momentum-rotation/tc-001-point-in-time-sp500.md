@@ -2,9 +2,9 @@
 
 Strategy: [Momentum Rotation](../../../strategies/momentum-rotation.md)
 
-## Edge Being Tested
+## Configuration Intent
 
-### Thesis Claim Under Test
+### Strategy Behavior Implemented
 
 Within point-in-time S&P 500 membership, the strongest intermediate-momentum
 member whose broader trend remains intact is expected to outperform weaker
@@ -24,7 +24,7 @@ can improve allocation of new contributions; accumulation is not part of the
 market-predictability thesis and must not be mistaken for evidence that rotation
 itself is superior.
 
-### Evidence Against the Claim
+### Evaluation Sensitivities
 
 The claim is weakened if top-ranked selections fail to outperform the
 equal-weight dated universe, if trend/drawdown eligibility does not improve on

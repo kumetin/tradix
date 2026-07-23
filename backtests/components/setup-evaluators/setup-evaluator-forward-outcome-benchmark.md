@@ -1,10 +1,11 @@
-# Setup Signal Backtest
+# Setup-Evaluator Forward-Outcome Benchmark
 
-## Component Under Test
+## Applicable Component Type
 
 Component type: [`setup-evaluator`](../../../stages/setup-evaluators/README.md)
 
-[Setup Evaluators](../../../stages/setup-evaluators/README.md)
+The concrete setup-evaluator descriptor is bound by each
+[experiment](../../../experiments/README.md).
 
 ## Question
 
@@ -13,7 +14,7 @@ following those signals above defined action, setup-score, and evidence-score th
 produce durable realized returns over time compared with simple baselines such
 as `SPY`, equal-weight universe exposure, and unfiltered signal exposure?
 
-This is a component-level backtest. It tests the [setup evaluator](../../../stages/setup-evaluators/README.md)'s signal
+This is an isolated component benchmark. It tests the [setup evaluator](../../../stages/setup-evaluators/README.md)'s signal
 playbook, not a full portfolio strategy with cash allocation, overlapping
 positions, settlement, fees, slippage, taxes, or rebalance constraints.
 
@@ -23,7 +24,7 @@ positions, settlement, fees, slippage, taxes, or rebalance constraints.
 
 ## Direct Input/Output Contract
 
-This backtest evaluates [setup-evaluator](../../../stages/setup-evaluators/README.md)
+This benchmark evaluates [setup-evaluator](../../../stages/setup-evaluators/README.md)
 signals directly against forward price outcomes. It does not require a
 [canonical strategy pipeline](../../../strategies/README.md#canonical-strategy-decision-pipeline),
 [portfolio policy](../../../stages/OPERATIONS.md#portfolio-transitions-and-portfolio-policies),
@@ -57,7 +58,7 @@ Each [setup evaluator](../../../stages/OPERATIONS.md#setup-evaluators) adapter m
 | `take_profit` | Upside exit level. |
 | `metadata` | Evaluator-specific fields such as score breakdowns or setup labels. |
 
-The generic backtest engine should know only this interface. Evaluator-specific
+The generic benchmark runner should know only this interface. Evaluator-specific
 labels, scoring component names, and setup explanations belong in `metadata`.
 
 ## Variants
@@ -67,19 +68,10 @@ labels, scoring component names, and setup explanations belong in `metadata`.
 | Close-entry signal test | Enter `buy` signals at [evaluation](../../../stages/OPERATIONS.md#evaluation-plans)-date adjusted close. | `5`, `10`, `20`, `40`, `60` trading days |
 | Limit-entry trade-plan test | Enter `buy` signals only after the generated buy limit is touched. | `5`, `10`, `20`, `40`, `60` trading days |
 
-Threshold sweeps should test multiple `min_setup_score` and `min_evidence_score` values
-instead of assuming the evaluator's default action alone is selective enough.
-
-Evaluator-specific adapters may expose additional backtest run parameters. The
-lower-risk swing-entry adapter supports `--stop-model` values:
-
-| Stop model | Meaning |
-| --- | --- |
-| `current` | Use the evaluator's generated invalidation level. |
-| `risk-1.25` | Widen current buy-limit-to-invalidation risk by `1.25x`. |
-| `risk-1.5` | Widen current buy-limit-to-invalidation risk by `1.5x`. |
-| `support-atr-1.2` | Set stop at support minus `1.2x` ATR. |
-| `support-atr-1.5` | Set stop at support minus `1.5x` ATR. |
+Threshold sweeps should test multiple `min_setup_score` and
+`min_evidence_score` values instead of assuming the evaluator's default action
+alone is selective enough. Evaluator-specific parameters and their concrete
+grids belong in the experiment that binds the evaluator to this protocol.
 
 ## Entry Mode
 
@@ -102,12 +94,13 @@ touched, it exits at the horizon-end adjusted close.
 signal research. Do not use `horizon_return` as trade P&L when an exit event
 occurred before the horizon ended.
 
-## Evaluation Matrix
+## Evaluation Requirements
 
-- [Lower-Risk Swing Entry Iteration Plan](../../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
-- [TC-001 Full Period](../../../configuration/evaluations/momentum-rotation/tc-001-full-period.md)
-- Add separate market-regime and locked-holdout windows before treating an
-  evaluator as reusable inside automated strategies.
+Each experiment must bind an
+[evaluation plan](../../../stages/OPERATIONS.md#evaluation-plans) with explicit
+warm-up and measured periods. Use more than one market regime and preserve a
+locked holdout before treating an evaluator as reusable inside automated
+strategies.
 
 ## Metrics
 
@@ -145,7 +138,7 @@ needs revised signal rules before automated use.
 Generated artifacts should live under:
 
 ```text
-artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/<run-directory>/
+artifacts/stock/backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark/<run-directory>/
 ```
 
 Default run directories use:
@@ -169,4 +162,4 @@ Each run should write:
 | `predictions.html` | Human-readable prediction table with one compact setup visualization per row. |
 | `outcomes.csv` | Entry-mode outcomes with first-exit realized P&L. |
 | `summary.csv` | Grouped metrics by action, setup-score, evidence-score, and evaluator-specific summary fields. |
-| `execution-report.md` | Human-readable run report with scenario, configuration, summary tables, derived insights, and next experiment ideas. |
+| `execution-report.md` | Human-readable report for that run's scenario, resolved configuration, data quality, and summary tables. |

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generic point-in-time backtest engine for setup-evaluator signals.
+"""Generic point-in-time forward-outcome benchmark for setup-evaluator signals.
 
 Parameters:
-    ``run_setup_evaluator_backtest`` accepts an evaluator adapter and a
-    ``BacktestConfig`` containing tickers, window, cadence, horizons, benchmark,
+    ``run_setup_evaluator_benchmark`` accepts an evaluator adapter and a
+    ``BenchmarkConfig`` containing tickers, window, cadence, horizons, benchmark,
     eligibility thresholds, execution assumptions, and output location.
 External sources:
     Local precomputed daily feature CSVs and, for chart rendering, the local
@@ -14,14 +14,14 @@ Side effects:
 Examples:
     Run an adapter with an explicit configuration::
 
-        run_setup_evaluator_backtest(adapter, BacktestConfig(...))
+        run_setup_evaluator_benchmark(adapter, BenchmarkConfig(...))
 
     Parse CLI-style horizon values for a caller::
 
         horizons = parse_horizons(["5", "20", "60"])
 
 Evaluator-specific code should adapt its native output to ``SetupSignal`` and
-then call ``run_setup_evaluator_backtest(...)``. The engine handles local
+then call ``run_setup_evaluator_benchmark(...)``. The engine handles local
 feature loading, evaluation-date selection, point-in-time row slicing, entry
 simulation, first-exit realized P&L, benchmark returns, summaries, and CSV
 output.
@@ -150,7 +150,7 @@ class SetupSignal:
 
 
 @dataclass(frozen=True)
-class BacktestConfig:
+class BenchmarkConfig:
     tickers: Sequence[str]
     start_date: dt.date
     end_date: dt.date
@@ -183,7 +183,7 @@ class SetupEvaluatorAdapter:
         return {}
 
 
-def run_setup_evaluator_backtest(adapter: SetupEvaluatorAdapter, config: BacktestConfig) -> None:
+def run_setup_evaluator_benchmark(adapter: SetupEvaluatorAdapter, config: BenchmarkConfig) -> None:
     tickers = [ticker.upper() for ticker in config.tickers]
     feature_rows = {ticker: load_feature_rows(ticker) for ticker in tickers}
     benchmark_rows = load_feature_rows(config.benchmark_ticker.upper())
@@ -225,7 +225,7 @@ def run_setup_evaluator_backtest(adapter: SetupEvaluatorAdapter, config: Backtes
     print(f"Wrote execution report to {config.output_dir / 'execution-report.md'}")
 
 
-def run_config_row(adapter: SetupEvaluatorAdapter, config: BacktestConfig) -> Dict[str, object]:
+def run_config_row(adapter: SetupEvaluatorAdapter, config: BenchmarkConfig) -> Dict[str, object]:
     config_hash = config.config_hash or run_config_hash(adapter.evaluator_id, config)
     return {
         "evaluator_id": adapter.evaluator_id,
@@ -248,10 +248,10 @@ def run_config_row(adapter: SetupEvaluatorAdapter, config: BacktestConfig) -> Di
 
 def config_with_run_output_dir(
     adapter_id: str,
-    config: BacktestConfig,
+    config: BenchmarkConfig,
     output_root: Path,
     timestamp: Optional[str] = None,
-) -> BacktestConfig:
+) -> BenchmarkConfig:
     """Return config with a convention-based run output directory.
 
     Directory format:
@@ -272,7 +272,7 @@ def config_with_run_output_dir(
     )
 
 
-def run_config_hash(adapter_id: str, config: BacktestConfig) -> str:
+def run_config_hash(adapter_id: str, config: BenchmarkConfig) -> str:
     """Return a short deterministic hash for the normalized run configuration."""
 
     payload = {
@@ -401,7 +401,7 @@ def build_outcomes(
     signals_by_prediction: Dict[str, SetupSignal],
     feature_rows: Dict[str, List[Dict[str, str]]],
     benchmark_rows: Sequence[Dict[str, str]],
-    config: BacktestConfig,
+    config: BenchmarkConfig,
 ) -> List[Dict[str, object]]:
     close_returns_by_key: Dict[Tuple[str, int], List[float]] = {}
     for prediction in predictions:
@@ -477,7 +477,7 @@ def limit_entry_outcome(
     return measured_outcome(prediction, signal, "limit_entry", horizon, entry_rows, buy_limit, entry_date, benchmark_rows)
 
 
-def signal_is_eligible(signal: SetupSignal, config: BacktestConfig) -> bool:
+def signal_is_eligible(signal: SetupSignal, config: BenchmarkConfig) -> bool:
     if signal.action not in config.entry_actions:
         return False
     if config.min_setup_score is not None and (
@@ -665,7 +665,7 @@ def summary_groups(adapter: SetupEvaluatorAdapter, prediction: Dict[str, object]
 
 def build_execution_report(
     adapter: SetupEvaluatorAdapter,
-    config: BacktestConfig,
+    config: BenchmarkConfig,
     run_config: Dict[str, object],
     predictions: Sequence[Dict[str, object]],
     outcomes: Sequence[Dict[str, object]],
@@ -674,7 +674,7 @@ def build_execution_report(
     """Build a human-readable Markdown report for one setup-signal backtest run."""
 
     lines = [
-        f"# Setup Signal Backtest Execution Report: {adapter.evaluator_id}",
+        f"# Setup-Evaluator Forward-Outcome Benchmark Report: {adapter.evaluator_id}",
         "",
         "## Scenario",
         "",
@@ -990,7 +990,7 @@ def report_insights(
     return insights
 
 
-def next_experiment_ideas(config: BacktestConfig, summaries: Sequence[Dict[str, object]]) -> List[str]:
+def next_experiment_ideas(config: BenchmarkConfig, summaries: Sequence[Dict[str, object]]) -> List[str]:
     ideas = [
         "Run a threshold sweep across several `min_setup_score` and `min_evidence_score` values.",
         "Repeat the same configuration across longer and more varied market windows.",

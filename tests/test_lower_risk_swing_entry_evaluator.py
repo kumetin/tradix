@@ -42,6 +42,7 @@ LowerRiskSwingEntryInputs = lower_risk_swing_entry.LowerRiskSwingEntryInputs
 PRICE_DATA_CURRENT = lower_risk_swing_entry.PRICE_DATA_CURRENT
 RECENCY_STALE_OR_EVENT_GAP = lower_risk_swing_entry.RECENCY_STALE_OR_EVENT_GAP
 STATUS_READY_NEAR_BUY_ZONE = lower_risk_swing_entry.STATUS_READY_NEAR_BUY_ZONE
+STATUS_WATCH_BREAKOUT_RETEST = lower_risk_swing_entry.STATUS_WATCH_BREAKOUT_RETEST
 SUPPORT_CONFLUENCE_WITHIN_3PCT = lower_risk_swing_entry.SUPPORT_CONFLUENCE_WITHIN_3PCT
 SUPPORT_STRONG_WITHIN_3PCT = lower_risk_swing_entry.SUPPORT_STRONG_WITHIN_3PCT
 TRADE_MATH_RECONCILES = lower_risk_swing_entry.TRADE_MATH_RECONCILES
@@ -137,6 +138,48 @@ class LowerRiskSwingEntryEvaluatorTest(unittest.TestCase):
             setup.invalidation_level,
             setup.key_support - atr * INITIAL_INVALIDATION_ATR_MULTIPLE,
             places=6,
+        )
+
+    def test_buy_limit_offset_places_near_support_entry_below_support(self) -> None:
+        rows = self.synthetic_rows(high=150.0)
+        baseline = LowerRiskSwingEntryEvaluator.construct_setup("TEST", rows)
+        offset = LowerRiskSwingEntryEvaluator.construct_setup(
+            "TEST",
+            rows,
+            buy_limit_offset=0.02,
+        )
+
+        self.assertEqual(baseline.buy_limit, baseline.current_price)
+        self.assertAlmostEqual(offset.buy_limit, offset.key_support * 0.98)
+
+    def test_entry_score_threshold_changes_ready_classification(self) -> None:
+        inputs = LowerRiskSwingEntryInputs(
+            current_price=100.0,
+            buy_limit=98.5,
+            reward_risk=2.6,
+            support_quality=SUPPORT_CONFLUENCE_WITHIN_3PCT,
+            trend_structure=TREND_CONSTRUCTIVE_ABOVE_RISING_AVERAGES,
+            analyst_support=ANALYST_STABLE,
+            extension_risk=EXTENSION_HIGH,
+            price_data_quality=PRICE_DATA_CURRENT,
+            support_resistance_quality=LEVELS_OBJECTIVE,
+            indicator_quality=INDICATORS_COMPLETE,
+            analyst_data_quality=ANALYST_DATA_TARGET_AND_COUNT,
+            trade_math_quality=TRADE_MATH_RECONCILES,
+            recency_gap_risk=RECENCY_STALE_OR_EVENT_GAP,
+        )
+
+        self.assertEqual(
+            LowerRiskSwingEntryEvaluator.evaluate(inputs, 20).setup_status,
+            STATUS_READY_NEAR_BUY_ZONE,
+        )
+        self.assertEqual(
+            LowerRiskSwingEntryEvaluator.evaluate(inputs, 22).setup_status,
+            STATUS_READY_NEAR_BUY_ZONE,
+        )
+        self.assertEqual(
+            LowerRiskSwingEntryEvaluator.evaluate(inputs, 23).setup_status,
+            STATUS_WATCH_BREAKOUT_RETEST,
         )
 
     def synthetic_rows(self, high: float) -> list:

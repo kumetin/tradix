@@ -151,6 +151,7 @@ class LowerRiskSwingEntryEvaluation:
     setup_status: str
     evidence_score: int
     evidence_score_breakdown: Dict[str, int]
+    reasons: Tuple[str, ...]
 
     def setup_score_breakdown_text(self) -> str:
         return format_breakdown("SS", self.setup_score, self.setup_score_breakdown, ("EP", "SQ", "RR", "TS", "AS", "ER"))
@@ -182,6 +183,7 @@ class LowerRiskSwingEntryEvaluator:
         analyst_support: str = ANALYST_WEAK_OR_MISSING,
         analyst_data_quality: str = ANALYST_DATA_MISSING,
         recency_gap_risk: str = RECENCY_CLEAN,
+        buy_limit_offset: float = 0.0,
     ) -> LowerRiskSwingEntrySetup:
         """Construct a deterministic setup from daily feature rows.
 
@@ -209,7 +211,7 @@ class LowerRiskSwingEntryEvaluator:
         current = to_float(latest.get("adj_close"))
         support, support_label = constructive_support(latest, rows)
         resistance = constructive_resistance(latest, rows)
-        buy_limit = constructive_buy_limit(current, support)
+        buy_limit = constructive_buy_limit(current, support, buy_limit_offset)
         atr = average_true_range(rows, ATR_WINDOW)
         trailing_pct = trailing_stop_pct(rows, atr)
         trailing_amount = current * trailing_pct if current is not None else None
@@ -249,7 +251,10 @@ class LowerRiskSwingEntryEvaluator:
         )
 
     @staticmethod
-    def evaluate(inputs: LowerRiskSwingEntryInputs) -> LowerRiskSwingEntryEvaluation:
+    def evaluate(
+        inputs: LowerRiskSwingEntryInputs,
+        entry_score_threshold: int = 18,
+    ) -> LowerRiskSwingEntryEvaluation:
         """Score one normalized setup input set.
 
         This method is intentionally pure and deterministic. It does not derive
@@ -273,16 +278,31 @@ class LowerRiskSwingEntryEvaluator:
             "TM": trade_math_quality_score(inputs.trade_math_quality),
             "RG": recency_gap_risk_score(inputs.recency_gap_risk),
         }
+        status = setup_status(
+            inputs,
+            setup_score_breakdown,
+            evidence_score_breakdown,
+            entry_score_threshold,
+        )
+        reasons = (
+            f"status:{status}",
+            *(f"setup:{key}={value}" for key, value in setup_score_breakdown.items()),
+            *(f"evidence:{key}={value}" for key, value in evidence_score_breakdown.items()),
+        )
         return LowerRiskSwingEntryEvaluation(
             setup_score=sum(setup_score_breakdown.values()),
             setup_score_breakdown=setup_score_breakdown,
-            setup_status=setup_status(inputs, setup_score_breakdown, evidence_score_breakdown),
+            setup_status=status,
             evidence_score=sum(evidence_score_breakdown.values()),
             evidence_score_breakdown=evidence_score_breakdown,
+            reasons=reasons,
         )
 
     @staticmethod
-    def score(inputs: List[LowerRiskSwingEntryInputs]) -> List[LowerRiskSwingEntryEvaluation]:
+    def score(
+        inputs: List[LowerRiskSwingEntryInputs],
+        entry_score_threshold: int = 18,
+    ) -> List[LowerRiskSwingEntryEvaluation]:
         """Score and sort normalized inputs without preserving setup fields.
 
         Prefer ``score_setups(...)`` for table output because it keeps ticker,
@@ -290,7 +310,10 @@ class LowerRiskSwingEntryEvaluator:
         evaluation.
         """
 
-        evaluations = [LowerRiskSwingEntryEvaluator.evaluate(item) for item in inputs]
+        evaluations = [
+            LowerRiskSwingEntryEvaluator.evaluate(item, entry_score_threshold)
+            for item in inputs
+        ]
         indexed = list(enumerate(evaluations))
         indexed.sort(
             key=lambda item: (
@@ -303,10 +326,22 @@ class LowerRiskSwingEntryEvaluator:
         return [evaluation for _, evaluation in indexed]
 
     @staticmethod
-    def score_setups(setups: List[LowerRiskSwingEntrySetup]) -> List[LowerRiskSwingEntryScoredSetup]:
+    def score_setups(
+        setups: List[LowerRiskSwingEntrySetup],
+        entry_score_threshold: int = 18,
+    ) -> List[LowerRiskSwingEntryScoredSetup]:
         """Score and sort constructed setups while preserving setup details."""
 
-        pairs = [(setup, LowerRiskSwingEntryEvaluator.evaluate(setup.inputs)) for setup in setups]
+        pairs = [
+            (
+                setup,
+                LowerRiskSwingEntryEvaluator.evaluate(
+                    setup.inputs,
+                    entry_score_threshold,
+                ),
+            )
+            for setup in setups
+        ]
         pairs.sort(
             key=lambda item: (
                 item[1].setup_score,
@@ -467,6 +502,7 @@ def setup_status(
     inputs: LowerRiskSwingEntryInputs,
     setup_score_breakdown: Dict[str, int],
     evidence_score_breakdown: Dict[str, int],
+    entry_score_threshold: int = 18,
 ) -> str:
     """Derive the table setup status from score components and data quality."""
 
@@ -484,7 +520,7 @@ def setup_status(
         return STATUS_TOO_EXTENDED
     if analyst_score == 0 and inputs.analyst_data_quality != ANALYST_DATA_MISSING:
         return STATUS_WEAK_ANALYST_SUPPORT
-    if entry_score >= 18 and support_score >= 15 and reward_score >= 8:
+    if entry_score >= entry_score_threshold and support_score >= 15 and reward_score >= 8:
         return STATUS_READY_NEAR_BUY_ZONE
     if reward_score == 0:
         return STATUS_AVOID_FOR_NOW
@@ -581,14 +617,20 @@ def constructive_resistance(latest: Dict[str, str], rows: Sequence[Dict[str, str
     return resistance
 
 
-def constructive_buy_limit(current: Optional[float], support: Optional[float]) -> Optional[float]:
+def constructive_buy_limit(
+    current: Optional[float],
+    support: Optional[float],
+    offset: float = 0.0,
+) -> Optional[float]:
     """Place the buy limit at or near support without chasing distant setups."""
 
     if current is None or support is None:
         return None
+    if offset < 0 or offset >= 1:
+        raise ValueError("buy-limit offset must be in [0, 1)")
     distance_pct = abs(current - support) / current * 100
     if distance_pct <= 1.0:
-        return current
+        return current if offset == 0 else support * (1.0 - offset)
     if distance_pct <= 3.0:
         return support + (current - support) * 0.5
     return support

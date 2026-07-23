@@ -2,9 +2,9 @@
 
 Strategy: [Momentum Rotation](../../../strategies/momentum-rotation.md)
 
-## Edge Being Tested
+## Configuration Intent
 
-### Thesis Claim Under Test
+### Strategy Behavior Implemented
 
 If momentum rank contains a graded continuation signal rather than only a lucky
 top-name effect, several of the highest-ranked eligible candidates should retain
@@ -25,7 +25,7 @@ fixed initial capital. Target count, equal weighting, and absence of recurring
 [funding](../../../stages/OPERATIONS.md#funding-profiles) are robustness dimensions rather than separate claims about market
 predictability.
 
-### Evidence Against the Claim
+### Evaluation Sensitivities
 
 The claim is weakened if excess return exists only for one selected name, if
 rank buckets are not monotonic, if diversification removes the effect, or if

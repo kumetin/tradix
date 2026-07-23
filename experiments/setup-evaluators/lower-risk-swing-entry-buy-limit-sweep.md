@@ -1,24 +1,28 @@
 # Lower-Risk Swing Entry Buy-Limit Sweep
 
-## Experiment Status
+## Experiment ID
 
-`draft` — Awaiting implementation review
+`lower-risk-swing-entry-buy-limit-sweep`
+
+## Status
+
+`rejected_for_promotion`
 
 ## Hypothesis
 
 The 65-80% stop-loss rate from the previous stop-model sweep is not caused by stop width, but by **entry placement too close to support**. Requiring deeper pullbacks below support (1-2%) will provide margin of safety, reduce whipsaw risk, and improve win rates and average returns.
 
-## Component Under Test
+## Reference Configuration
 
 - [Setup evaluator](../../stages/OPERATIONS.md#setup-evaluators): [`lower-risk-swing-entry`](../../stages/setup-evaluators/lower-risk-swing-entry.md)
-- Backtest spec: [`setup-signal-backtest`](../../backtests/components/setup-evaluators/setup-signal-backtest.md)
+- Benchmark protocol: [`setup-evaluator-forward-outcome-benchmark`](../../backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md)
 - [Evaluation plan](../../stages/OPERATIONS.md#evaluation-plans): [`lower-risk-swing-entry-iteration-plan`](../../configuration/evaluations/setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
 - Previous baseline: [`lower-risk-swing-entry-baseline-current-stop`](lower-risk-swing-entry-baseline-current-stop.md)
 - Previous stop-model results: [`lower-risk-swing-entry-stop-model-sweep`](lower-risk-swing-entry-stop-model-sweep.md)
 
 ## Root Cause: Buy Limit Placement
 
-### Current Behavior (lines 566-576 in `lower_risk_swing_entry.py`)
+### Pre-Experiment Behavior
 
 ```python
 def constructive_buy_limit(current: Optional[float], support: Optional[float]) -> Optional[float]:
@@ -55,23 +59,21 @@ For 3,813 "Ready / near buy zone" trades (20-day horizon):
 
 **Conclusion:** Even with support-atr-1.5 stops (widest model tested), entries at/near support result in 65% stop-loss rate because normal volatility (3-4% dips) break support immediately.
 
-## Experiment Design
+## Controlled Settings
 
 ### Evaluation Window
 
 | Setting | Value |
 | --- | --- |
-| Partition | Train/dev |
-| Start date | `2015-01-01` |
-| End date | `2019-12-31` |
+| Evaluation binding | Train/dev partition from the referenced evaluation plan |
 | Frequency | `weekly` |
 | Horizons | `20`, `40`, `60`, `90`, `120` |
-| Benchmark | `SPY` |
-| Secondary baseline | Equal-weight evaluated universe exposure |
 | Historical universe | Removed random-20 fixture; exact tickers remain in the recorded artifact run configurations. |
 | Evidence score gate | `70` |
 | Setup score threshold | `70` |
 | Stop model | `support-atr-1.5` (best from previous sweep) |
+
+## Declared Deltas
 
 ### Buy Limit Offset Variants
 
@@ -118,7 +120,7 @@ For 3,813 "Ready / near buy zone" trades (20-day horizon):
   ```
 - Each threshold should be tested in combination with buy limit offsets
 
-### Test Matrix
+### Experiment Matrix
 
 | Buy Limit Offset | Entry Score Threshold | Scenario ID |
 | --- | --- | --- |
@@ -133,7 +135,7 @@ For 3,813 "Ready / near buy zone" trades (20-day horizon):
 
 **Total runs:** 8 scenarios (2 dimensions)
 
-## Expected Results
+## Pre-Registered Expectations
 
 ### Outcome Expectations
 
@@ -154,7 +156,7 @@ For 3,813 "Ready / near buy zone" trades (20-day horizon):
 - Margin of safety → fewer whipsaw exits
 - Still underperforms benchmarks (structural issue), but moves in right direction
 
-### Success Criteria
+## Success Criteria
 
 ✅ **Primary:** Stop-loss rate drops below 45% (target: 35-40%)
 
@@ -186,39 +188,89 @@ If both improvements stack:
 
 **Note:** Improvements may not be fully additive if stop model and entry quality are correlated, but directional expectation is clear.
 
-## Next Steps After This Experiment
+## Follow-up
 
-### If Results Confirm Hypothesis (SL rate < 45%, return > +1.5%)
-
-1. **Implement best variant** in setup evaluator code
-2. **Run validation period** (hold-out 2020 + test against live data)
-3. **Consider take-profit optimization** (nearer partial targets to capture more TP-rate trades)
-4. **Move to live paper-trading** if validation holds
-
-### If Results Are Inconclusive or Fail
-
-1. **Diagnose:** Was entry depth not enough? Was support quality the issue?
-2. **Next experiment:** Test support confirmation (multi-day hold, volume requirement)
-3. **Alternative direction:** Test take-profit targets or trailing stop mechanics
-4. **Fallback:** Return to stop-model improvements; accept current setup quality as-is
+Do not move these variants to validation. If research continues, test whether
+support confirmation or the setup-admission rules have predictive value while
+holding the current buy-limit behavior fixed. Do not combine another entry
+offset with stop/take-profit tuning until an independently useful signal-quality
+change is found.
 
 ## Implementation Checklist
 
-- [ ] Modify `constructive_buy_limit()` to accept `offset` parameter
-- [ ] Add `entry_score_threshold` parameter to `setup_status()` function
-- [ ] Update setup evaluator adapter to expose both parameters as backtest CLI args
-- [ ] Test with `--buy-limit-offset 0.00|0.01|0.02` and `--entry-score-threshold 18|20|22`
-- [ ] Run all 8 scenarios with same universe/horizon/evaluation window
-- [ ] Generate outcomes, predictions, summary CSVs for each scenario
-- [ ] Aggregate results into comparison table (similar to stop-model sweep)
-- [ ] Document findings and recommendation for next iteration
+- [x] Modify `constructive_buy_limit()` to accept `offset` parameter
+- [x] Add `entry_score_threshold` parameter to `setup_status()` function
+- [x] Update setup evaluator adapter to expose both parameters as backtest CLI args
+- [x] Test with `--buy-limit-offset 0.00|0.01|0.02` and `--entry-score-threshold 18|20|22`
+- [x] Run all 8 scenarios with same universe/horizon/evaluation window
+- [x] Generate outcomes, predictions, summary CSVs for each scenario
+- [x] Aggregate results into comparison table
+- [x] Document findings and recommendation for next iteration
 
-## Artifacts
+## Run Index
+
+| Scenario | Artifact directory |
+| --- | --- |
+| `bl-current-es18` | [`20260723-092835Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-current-es18__94374b24`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-092835Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-current-es18__94374b24/) |
+| `bl-offset1-es18` | [`20260723-093019Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset1-es18__1c85adad`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-093019Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset1-es18__1c85adad/) |
+| `bl-offset2-es18` | [`20260723-093207Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset2-es18__00b92c2c`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-093207Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset2-es18__00b92c2c/) |
+| `bl-current-es20` | [`20260723-093311Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-current-es20__78210813`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-093311Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-current-es20__78210813/) |
+| `bl-offset1-es20` | [`20260723-093459Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset1-es20__c779e25e`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-093459Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset1-es20__c779e25e/) |
+| `bl-offset2-es20` | [`20260723-093635Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset2-es20__7daebc78`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-093635Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset2-es20__7daebc78/) |
+| `bl-offset1-es22` | [`20260723-093732Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset1-es22__3b5a02b4`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-093732Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset1-es22__3b5a02b4/) |
+| `bl-offset2-es22` | [`20260723-093909Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset2-es22__1a05f6a5`](../../artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/20260723-093909Z__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-bl-offset2-es22__1a05f6a5/) |
+
+## Results
+
+Primary 20-trading-day close-entry results:
+
+| Buy-limit variant | Entry threshold | Buy signals | Entered | Win rate | Avg realized | Stop rate | Take-profit rate | Edge vs SPY |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `current` | `18` | 3,813 | 3,763 | 44.96% | 0.88% | 51.71% | 19.16% | -0.15% |
+| `offset-1` | `18` | 4,383 | 3,691 | 50.15% | 0.58% | 51.50% | 34.57% | -0.35% |
+| `offset-2` | `18` | 1,597 | 1,054 | 44.97% | 0.59% | 50.66% | 20.21% | -0.47% |
+| `current` | `20` | 3,813 | 3,763 | 44.96% | 0.88% | 51.71% | 19.16% | -0.15% |
+| `offset-1` | `20` | 4,383 | 3,691 | 50.15% | 0.58% | 51.50% | 34.57% | -0.35% |
+| `offset-2` | `20` | 474 | 436 | 43.81% | 0.47% | 50.00% | 12.39% | -0.41% |
+| `offset-1` | `22` | 4,383 | 3,691 | 50.15% | 0.58% | 51.50% | 34.57% | -0.35% |
+| `offset-2` | `22` | 474 | 436 | 43.81% | 0.47% | 50.00% | 12.39% | -0.41% |
+
+Across all five horizons, the current baseline averaged 1.26% realized return
+with a 65.72% stop-touch rate. Offset variants averaged 0.77% to 0.93% with
+64.17% to 66.44% stop-touch rates. Deeper entries therefore did not improve
+the cross-horizon result.
+
+## Findings
+
+- The primary stop-rate criterion failed. The best 20-day close-entry stop
+  rate was 50.00%, not below 45%.
+- The return criterion failed. Every offset variant produced only 0.47% to
+  0.59% average realized return versus the required 1.5% and the 0.88%
+  current-entry baseline.
+- `offset-1` increased the number of qualifying signals because the deeper
+  entry improved reward/risk enough to admit additional setups; selectivity did
+  not improve.
+- `offset-2` combined with threshold 20 or 22 reduced signals to 474, but the
+  smaller sample performed worse rather than better.
+- Thresholds 20 and 22 were behaviorally identical because entry proximity is
+  bucketed at 25, 22, 18, 12, 6, or 0. Threshold 20 and 22 admit the same
+  buckets.
+- Limit-entry variants were also weaker: offset stop rates ranged from 56.48%
+  to 64.07% and average realized returns from 0.24% to 0.45%.
+
+## Decision
+
+Reject all tested buy-limit offsets and stricter ready-status thresholds for
+promotion. Preserve the current buy-limit behavior as the comparison baseline;
+the evidence does not support entry depth as the cause of the evaluator's high
+stop rate.
+
+## Artifact Contract
 
 Generated artifacts will be stored under:
 ```
 artifacts/stock/backtests/components/setup-evaluators/setup-signal-backtest/
-  20YYMMDD-HHMMSSZ__lower-risk-swing-entry__buy-limit-sweep-XX-SCENARIO__UUID/
+  <timestamp>__lower-risk-swing-entry__buy-limit-sweep-20-train-dev-<scenario>__<config-hash>/
 ```
 
 Each scenario will include:
@@ -240,11 +292,11 @@ Each scenario will include:
 ## References
 
 - Setup evaluator implementation: `stages/setup-evaluators/lower_risk_swing_entry.py`
-- Entry proximity scoring: Lines 306-320
-- Support quality scoring: Lines 357-373
-- Setup status logic: Lines 448-477
-- Buy limit construction: Lines 566-576
-- Invalidation level: Lines 614-631
+- Entry proximity scoring: `entry_proximity_score`
+- Support quality scoring: `support_quality_score`
+- Setup status logic: `setup_status`
+- Buy-limit construction: `constructive_buy_limit`
+- Invalidation level: `invalidation_level`
 
 ## Open Questions
 

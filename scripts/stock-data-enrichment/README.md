@@ -31,5 +31,13 @@ that continuous history, and then splits output rows back into yearly files.
 
 Generated fields include adjusted open/high/low, SMA 20/50/100/150/200,
 21/63/126/252-trading-row returns, the 252-row high, and drawdown from that
-high. Rows without both `close` and `adj_close` are skipped rather than
+high. It also derives the requested boolean trend fields from dated quarterly
+facts in `data/stock/fundamentals/quarterly/`, plus price-above-SMA-200 and
+252-row return above SPY. Fundamental rows are applied from `available_date`,
+never from the fiscal period end. Growth, margin, revenue, and debt compare the
+latest reported quarter with its closest comparable year-ago quarter; missing
+evidence produces a blank value. Institutional accumulation comes from dated
+snapshots in `data/stock/institutions/quarterly/` and is true when the aggregate
+reported institutional share change is positive.
+Rows without both `close` and `adj_close` are skipped rather than
 forward-filled. The script also regenerates the feature dataset `.notes` file.

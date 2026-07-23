@@ -30,7 +30,7 @@ not apply an entry rule, [portfolio policy](../../../stages/OPERATIONS.md#portfo
 
 | Variant | `medium_sma_window` | `long_sma_window` | `rolling_high_window` | `max_drawdown` | `ranking_return_window` |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Current profile default | `50` | `200` | `252` | `-45%` | `126` |
+| Descriptor defaults | `50` | `200` | `252` | `-45%` | `126` |
 | Faster momentum | `50` | `200` | `252` | `-45%` | `63` |
 | Slower momentum | `50` | `200` | `252` | `-45%` | `252` |
 | Stricter drawdown | `50` | `200` | `252` | `-30%` | `126` |
@@ -38,8 +38,8 @@ not apply an entry rule, [portfolio policy](../../../stages/OPERATIONS.md#portfo
 ## [Evaluation](../../../stages/OPERATIONS.md#evaluation-plans) Matrix
 
 - [TC-001 Full Period](../../../configuration/evaluations/momentum-rotation/tc-001-full-period.md)
-- Add separate bull, bear, recovery, sideways, validation, and locked holdout
-  profiles before treating the selector as robust.
+- Add separate bull, bear, recovery, sideways, validation, and locked-holdout
+  evaluation plans before treating the selector as robust.
 
 ## Metrics
 
@@ -60,7 +60,7 @@ not apply an entry rule, [portfolio policy](../../../stages/OPERATIONS.md#portfo
 
 ## Interpretation Rules
 
-Treat the profile as reusable only if ranking quality and top-selection excess
+Treat the descriptor as reusable only if ranking quality and top-selection excess
 return persist after warm-up exclusion across more than one evaluation period
 without relying on one outlier ticker or market regime.
 

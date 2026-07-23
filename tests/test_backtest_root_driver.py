@@ -36,7 +36,7 @@ class BacktestRootDriverTest(unittest.TestCase):
     def test_parse_args_keeps_driver_args_separate(self) -> None:
         args, driver_args = run_backtest.parse_args(
             [
-                "backtests/components/setup-evaluators/setup-signal-backtest.md",
+                "backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md",
                 "--evaluator",
                 "lower-risk-swing-entry",
                 "--validate-only",
@@ -58,9 +58,39 @@ class BacktestRootDriverTest(unittest.TestCase):
         self.assertEqual(spec.kind, run_backtest.SPEC_STRATEGY)
         run_backtest.validate_spec(spec)
 
+    def test_resolves_sma50_strategy_backtest(self) -> None:
+        spec = run_backtest.resolve_backtest_spec(
+            ROOT
+            / "backtests/strategies/technical-resistance-runner/"
+            "tc-002-random-50-universe-1-sma50-exit.md"
+        )
+
+        self.assertEqual(spec.kind, run_backtest.SPEC_STRATEGY)
+        run_backtest.validate_spec(spec)
+
+    def test_resolves_pre2014_sma50_robustness_backtest(self) -> None:
+        spec = run_backtest.resolve_backtest_spec(
+            ROOT
+            / "backtests/strategies/technical-resistance-runner/"
+            "tc-003-pre-2014-sma50-robustness.md"
+        )
+
+        self.assertEqual(spec.kind, run_backtest.SPEC_STRATEGY)
+        run_backtest.validate_spec(spec)
+
+    def test_resolves_regime_gated_strategy_backtest(self) -> None:
+        spec = run_backtest.resolve_backtest_spec(
+            ROOT
+            / "backtests/strategies/regime-gated-technical-resistance/"
+            "tc-001-eight-dataset-robustness.md"
+        )
+
+        self.assertEqual(spec.kind, run_backtest.SPEC_STRATEGY)
+        run_backtest.validate_spec(spec)
+
     def test_resolves_isolated_component_backtest(self) -> None:
         spec = run_backtest.resolve_backtest_spec(
-            ROOT / "backtests/components/setup-evaluators/setup-signal-backtest.md"
+            ROOT / "backtests/components/setup-evaluators/setup-evaluator-forward-outcome-benchmark.md"
         )
 
         self.assertEqual(spec.kind, run_backtest.SPEC_COMPONENT)

@@ -25,6 +25,9 @@ should live under `artifacts/stock/backtests/`.
 - [Momentum Rotation TC-002 Full Period](momentum-rotation/tc-002-full-period.md)
 - [Momentum Rotation TC-003 Full Period](momentum-rotation/tc-003-full-period.md)
 - [Lower-Risk Swing Entry Iteration Plan](setup-evaluators/lower-risk-swing-entry-iteration-plan.md)
+- [Technical Resistance Runner TC-001 Development and Retrospective Period](technical-resistance-runner/tc-001-development-retrospective.md)
+- [Technical Resistance Runner TC-003 Pre-2014 Regimes](technical-resistance-runner/tc-003-pre-2014-regimes.md)
+- [Regime-Gated Technical Resistance TC-001 Eight-Dataset Robustness](regime-gated-technical-resistance/tc-001-eight-dataset-robustness.md)
 
 ## Date Semantics
 
